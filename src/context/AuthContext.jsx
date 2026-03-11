@@ -14,6 +14,7 @@ export function AuthProvider({ children }) {
     let mounted = true;
 
     async function loadSession() {
+      console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL)
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session && mounted) {
