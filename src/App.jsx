@@ -261,6 +261,7 @@ function AuthPage() {
 
 // ─── LAYOUT ───────────────────────────────────────────────────
 function Layout({ page, setPage, children }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { profile, logout } = useAuth();
 
   const navMap = {
@@ -298,8 +299,7 @@ function Layout({ page, setPage, children }) {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       {/* Sidebar */}
-      <div style={{ width: 230, background: C.surface, borderRight: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 100, overflowY: 'auto' }}>
-        <div style={{ padding: '18px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+<div style={{ width: 230, background: C.surface, borderRight: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 200, overflowY: 'auto', transform: window.innerWidth < 768 ? (sidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)', transition: 'transform 0.3s ease' }}>        <div style={{ padding: '18px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 34, height: 34, background: `linear-gradient(135deg, ${C.accent}, ${C.purple})`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>🎮</div>
           <div>
             <div style={{ fontWeight: 800, fontSize: 14 }}>GameZone</div>
@@ -331,10 +331,11 @@ function Layout({ page, setPage, children }) {
       </div>
 
       {/* Main */}
-      <div style={{ marginLeft: 230, flex: 1 }}>
-        <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: '14px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
-          <div style={{ fontSize: 19, fontWeight: 700 }}>{currentLabel}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+<div style={{ marginLeft: window.innerWidth < 768 ? 0 : 230, flex: 1 }}>        <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: '14px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
+<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+  <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: C.text, fontSize: 22, cursor: 'pointer', display: window.innerWidth < 768 ? 'block' : 'none' }}>☰</button>
+  <div style={{ fontSize: 19, fontWeight: 700 }}>{currentLabel}</div>
+</div>          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <span onClick={() => setPage('notifications')} style={{ fontSize: 18, cursor: 'pointer' }}>🔔</span>
             <div style={{ width: 34, height: 34, borderRadius: '50%', background: `linear-gradient(135deg, ${C.accent}, ${C.purple})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: '#000' }}>{initials(profile?.name)}</div>
           </div>
