@@ -468,14 +468,18 @@ function SAZones() {
 
 function SAOwners() {
   const { data: owners, loading, refetch } = useOwners();
+  const { data: zones } = useZones();
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState(null);
-  const [form, setForm] = useState({ name: '', email: '', status: 'active' });
+  const [form, setForm] = useState({ name: '', email: '', status: 'active', zone_id: '' });
 
   const filtered = (owners || []).filter(o => o.name?.toLowerCase().includes(search.toLowerCase()) || o.email?.toLowerCase().includes(search.toLowerCase()));
 
-  const save = async () => {
-    await db.updateProfile(modal, { name: form.name, status: form.status });
+const save = async () => {
+    await db.updateProfile(modal, { name: form.name, status: form.status, zone_id: form.zone_id || null });
+    if (form.zone_id) {
+      await db.updateZone(form.zone_id, { owner_id: modal });
+    }
     refetch();
     setModal(null);
   };
