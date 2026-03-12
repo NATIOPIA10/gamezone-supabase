@@ -511,8 +511,7 @@ const save = async () => {
               <tr key={o.id}>
                 <td style={td}><div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><div style={{ width: 28, height: 28, borderRadius: '50%', background: `linear-gradient(135deg, ${C.accent}, ${C.purple})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#000', flexShrink: 0 }}>{initials(o.name)}</div><span style={{ fontWeight: 600 }}>{o.name}</span></div></td>
                 <td style={{ ...td, color: C.muted }}>{o.email}</td>
-                <td style={td}>{o.game_zones?.name || <span style={{ color: C.dim }}>—</span>}</td>
-                <td style={td}>{badge(o.status)}</td>
+                <td style={td}>{(zones || []).find(z => z.id === o.zone_id)?.name || <span style={{ color: C.dim }}>—</span>}</td>                <td style={td}>{badge(o.status)}</td>
                 <td style={{ ...td, color: C.muted }}>{fmtDate(o.created_at)}</td>
                 <td style={td}>
                   <div style={{ display: 'flex', gap: 5 }}>
