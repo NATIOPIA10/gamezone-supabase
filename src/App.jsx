@@ -1248,16 +1248,20 @@ function StaffSessions() {
 
   const finishSession = async () => {
     const session = finishModal;
-    await supabase.from('sessions').update({ status: 'finished', end_time: new Date().toISOString() }).eq('id', session.id);
-    await supabase.from('payments').insert({
-      zone_id: profile?.zone_id,
-      amount: session.total_amount,
-      method: paymentMethod,
-      processed_by: profile?.id,
-      created_at: new Date().toISOString(),
-    });
-    setFinishModal(null);
-    loadSessions();
+    try {
+      await supabase.from('sessions').update({ status: 'finished', end_time: new Date().toISOString() }).eq('id', session.id);
+      const { error } = await supabase.from('payments').insert({
+        zone_id: profile?.zone_id,
+        session_id: session.id,
+        amount: session.total_amount,
+        method: paymentMethod,
+        processed_by: profile?.id,
+        created_at: new Date().toISOString(),
+      });
+      if (error) console.error('Payment insert error:', error);
+      setFinishModal(null);
+      loadSessions();
+    } catch(e) { console.error('Finish session error:', e); }
   };
 
   const getElapsed = (startTime) => {
