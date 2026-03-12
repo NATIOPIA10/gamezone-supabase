@@ -38,11 +38,13 @@ export function AuthProvider({ children }) {
         if (event === 'SIGNED_IN' && session) {
           setUser(session.user);
           await fetchProfile(session.user.id, mounted);
+          if (mounted) setLoading(false);
         }
 
         if (event === 'SIGNED_OUT') {
           setUser(null);
           setProfile(null);
+          if (mounted) setLoading(false);
         }
 
         if (event === 'TOKEN_REFRESHED' && session) {
@@ -74,6 +76,7 @@ export function AuthProvider({ children }) {
       return data;
     } catch (err) {
       console.error('Profile fetch error:', err);
+      if (mounted) setProfile(null);
       return null;
     }
   }
