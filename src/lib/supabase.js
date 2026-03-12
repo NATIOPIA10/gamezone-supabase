@@ -186,12 +186,20 @@ export async function getZoneAnalytics(zoneId = null) {
 }
 
 export async function getPlatformStats() {
-  const [zones, players, payments] = await Promise.all([
+  const [zones, players, subscriptions] = await Promise.all([
     supabase.from('game_zones').select('id, status'),
     supabase.from('players').select('id, status'),
-    supabase.from('payments').select('amount').gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+    supabase.from('subscriptions').select('*, subscription_plans(price_monthly)').eq('status', 'active'),
   ]);
+  const monthlyRevenue = (subscriptions.data || []).reduce((sum, s) => sum + Number(s.subscription_plans?.price_monthly || 0), 0);
   return {
+    totalZones: zones.data?.length || 0,
+    activeZones: zones.data?.filter(z => z.status === 'active').length || 0,
+    totalPlayers: players.data?.length || 0,
+    activePlayers: players.data?.filter(p => p.status === 'active').length || 0,
+    monthlyRevenue,
+    totalSubscriptions: subscriptions.data?.length || 0,
+  };return {
     totalZones: zones.data?.length || 0,
     activeZones: zones.data?.filter(z => z.status === 'active').length || 0,
     totalPlayers: players.data?.length || 0,
