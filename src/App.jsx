@@ -1213,13 +1213,15 @@ function OwnerSubscription() {
     if (!selectedPlan) return;
     setUpgrading(true);
     try {
-      await supabase.from('subscriptions').upsert({
+      const { error: subError } = await supabase.from('subscriptions').upsert({
         zone_id: profile?.zone_id,
         plan_id: selectedPlan.id,
+        owner_id: profile?.id,
         status: 'pending',
         started_at: new Date().toISOString(),
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       }, { onConflict: 'zone_id' });
+      if (subError) throw new Error('Subscription save failed: ' + subError.message);
       const { data: zoneInfo } = await supabase.from('game_zones').select('name').eq('id', profile?.zone_id).single();
       const { data: superadmin } = await supabase.from('profiles').select('id').eq('role', 'superadmin').single();
       await supabase.from('notifications').insert({
