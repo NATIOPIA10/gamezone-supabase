@@ -1169,71 +1169,151 @@ function StaffRegisterPlayer() {
 
 function StaffSessions() {
   const { profile } = useAuth();
-  const { data: players } = usePlayers(profile?.zone_id);
-  const { data: sessions, loading, refetch } = useSessions(profile?.zone_id);
-  const [modal, setModal] = useState(false);
-  const [form, setForm] = useState({ player_id: '', station_number: '1', amount: '10' });
-  const [ending, setEnding] = useState(null);
-  const [endAmount, setEndAmount] = useState('15');
+  const [games, setGames] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  const [form, setForm] = useState({ customer_name: '', game_id: '', device_number: '1', session_mode: 'Per Game' });
+  const [err, setErr] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [timers, setTimers] = useState({});
+
+  const loadGames = async () => {
+    const { data } = await supabase.from('games').select('*').eq('business_id', profile?.zone_id);
+    setGames(data || []);
+  };
+
+  const loadSessions = async () => {
+    const { data } = await supabase.from('sessions').select('*, games(game_name, price, devices, game_type)').eq('business_id', profile?.zone_id).eq('status', 'active').order('created_at', { ascending: false });
+    setSessions(data || []);
+  };
+
+  useEffect(() => {
+    if (profile?.zone_id) { loadGames(); loadSessions(); }
+    const interval = setInterval(() => setTimers(t => ({ ...t, tick: Date.now() })), 1000);
+    return () => clearInterval(interval);
+  }, [profile?.zone_id]);
+
+  const selectedGame = games.find(g => g.id === form.game_id);
+  const deviceOptions = selectedGame ? Array.from({ length: selectedGame.devices }, (_, i) => ({ value: String(i + 1), label: `Device ${i + 1}` })) : [{ value: '1', label: 'Device 1' }];
 
   const startSession = async () => {
-    if (!form.player_id) return;
-    await db.startSession({ player_id: form.player_id, zone_id: profile.zone_id, station_number: Number(form.station_number), started_by: profile.id });
-    setModal(false);
-    refetch();
+    if (!form.customer_name || !form.game_id) { setErr('Customer name and game are required.'); return; }
+    setSaving(true); setErr('');
+    try {
+      await supabase.from('sessions').insert({
+        business_id: profile?.zone_id,
+        game_id: form.game_id,
+        customer_name: form.customer_name,
+        device_number: Number(form.device_number),
+        session_mode: form.session_mode,
+        total_games: 0,
+        total_amount: 0,
+        status: 'active',
+        start_time: new Date().toISOString(),
+      });
+      setForm({ customer_name: '', game_id: '', device_number: '1', session_mode: 'Per Game' });
+      await loadSessions();
+    } catch (e) { setErr(e.message); }
+    finally { setSaving(false); }
   };
 
-  const endSession = async (id) => {
-    await db.endSession(id, profile.id, Number(endAmount));
-    await db.createPayment({ session_id: id, player_id: sessions.find(s => s.id === id)?.player_id, zone_id: profile.zone_id, amount: Number(endAmount), method: 'cash', processed_by: profile.id });
-    setEnding(null);
-    refetch();
+  const addGame = async (session) => {
+    const newGames = session.total_games + 1;
+    const newAmount = newGames * Number(session.games?.price || 0);
+    await supabase.from('sessions').update({ total_games: newGames, total_amount: newAmount }).eq('id', session.id);
+    loadSessions();
   };
 
-  if (loading) return <Spinner />;
+  const finishSession = async (session) => {
+    await supabase.from('sessions').update({ status: 'finished', end_time: new Date().toISOString() }).eq('id', session.id);
+    loadSessions();
+  };
+
+  const getElapsed = (startTime) => {
+    const diff = Math.floor((Date.now() - new Date(startTime).getTime()) / 1000);
+    const h = Math.floor(diff / 3600);
+    const m = Math.floor((diff % 3600) / 60);
+    const s = diff % 60;
+    return h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
+  };
 
   return (
     <div>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 22 }}>Active Sessions</div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
-        <button style={btnS('primary')} onClick={() => setModal(true)}>+ Start Session</button>
-      </div>
-      <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Player', 'Station', 'Started', 'Status', 'Action'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
-          <tbody>
-            {(sessions || []).map(s => (
-              <tr key={s.id}>
-                <td style={td}><span style={{ fontWeight: 600 }}>{s.players?.name || '—'}</span></td>
-                <td style={td}>#{s.station_number}</td>
-                <td style={{ ...td, color: C.muted }}>{fmtTime(s.started_at)}</td>
-                <td style={td}>{badge(s.status)}</td>
-                <td style={td}>{s.status === 'active' && <button style={btnS('danger', true)} onClick={() => setEnding(s.id)}>End Session</button>}</td>
-              </tr>
-            ))}
-            {!sessions?.length && <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No active sessions.</td></tr>}
-          </tbody>
-        </table>
+      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Game Sessions</div>
+      <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Start and manage active game sessions.</div>
+
+      {/* Start New Session Form */}
+      <div style={{ ...card, padding: 22, marginBottom: 28 }}>
+        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, color: C.accent }}>▶ Start New Session</div>
+        {err && <ErrorMsg msg={err} />}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+          <Field label="Customer Name" value={form.customer_name} onChange={v => setForm({ ...form, customer_name: v })} placeholder="e.g. Dawit" required />
+          <Field label="Select Game" value={form.game_id} onChange={v => setForm({ ...form, game_id: v, device_number: '1' })}
+            options={[{ value: '', label: '— Select game —' }, ...games.map(g => ({ value: g.id, label: `${g.game_name} ($${g.price})` }))]} />
+          <Field label="Device Number" value={form.device_number} onChange={v => setForm({ ...form, device_number: v })} options={deviceOptions} />
+          <Field label="Session Mode" value={form.session_mode} onChange={v => setForm({ ...form, session_mode: v })}
+            options={[{ value: 'Per Game', label: 'Per Game' }, { value: 'Time Based', label: 'Time Based' }]} />
+        </div>
+        {selectedGame && (
+          <div style={{ marginTop: 8, padding: '10px 14px', background: `${C.accent}10`, borderRadius: 8, fontSize: 13, color: C.accent }}>
+            💡 <strong>{selectedGame.game_name}</strong> — {selectedGame.game_type} — Price: <strong>${selectedGame.price}</strong> per game
+          </div>
+        )}
+        <button style={{ ...btnS('primary'), marginTop: 16, padding: '11px 28px' }} onClick={startSession} disabled={saving}>
+          {saving ? 'Starting…' : '▶ Start Session'}
+        </button>
       </div>
 
-      {modal && (
-        <Modal title="Start Session" onClose={() => setModal(false)}
-          footer={<><button style={btnS('outline')} onClick={() => setModal(false)}>Cancel</button><button style={btnS('primary')} onClick={startSession}>Start</button></>}>
-          <Field label="Player" value={form.player_id} onChange={v => setForm({ ...form, player_id: v })}
-            options={[{ value: '', label: '— Select player —' }, ...(players || []).map(p => ({ value: p.id, label: p.name }))]} />
-          <Field label="Station Number" type="number" value={form.station_number} onChange={v => setForm({ ...form, station_number: v })} />
-        </Modal>
+      {/* Active Sessions */}
+      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 14 }}>
+        Active Sessions <span style={{ fontSize: 13, color: C.green, fontWeight: 400 }}>({sessions.length} active)</span>
+      </div>
+
+      {sessions.length === 0 && (
+        <div style={{ ...card, padding: 40, textAlign: 'center', color: C.dim }}>
+          No active sessions. Start a new session above!
+        </div>
       )}
 
-      {ending && (
-        <Modal title="End Session & Record Payment" onClose={() => setEnding(null)}
-          footer={<><button style={btnS('outline')} onClick={() => setEnding(null)}>Cancel</button><button style={btnS('danger')} onClick={() => endSession(ending)}>End & Charge</button></>}>
-          <Field label="Amount Charged ($)" type="number" value={endAmount} onChange={setEndAmount} />
-        </Modal>
-      )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+        {sessions.map(s => (
+          <div key={s.id} style={{ ...card, padding: 20, border: `1px solid ${C.accent}40`, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${C.accent}, ${C.purple})` }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800 }}>{s.customer_name}</div>
+                <div style={{ fontSize: 12, color: C.muted }}>{s.games?.game_name} · Device {s.device_number}</div>
+              </div>
+              <span style={{ padding: '3px 9px', borderRadius: 20, fontSize: 10, fontWeight: 700, color: C.green, background: `${C.green}20` }}>● ACTIVE</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+              <div style={{ ...card, padding: '10px 12px', background: C.surface }}>
+                <div style={{ fontSize: 10, color: C.dim, marginBottom: 3 }}>GAMES PLAYED</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: C.accent }}>{s.total_games}</div>
+              </div>
+              <div style={{ ...card, padding: '10px 12px', background: C.surface }}>
+                <div style={{ fontSize: 10, color: C.dim, marginBottom: 3 }}>TOTAL AMOUNT</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: C.green }}>${s.total_amount}</div>
+              </div>
+            </div>
+
+            <div style={{ fontSize: 11, color: C.muted, marginBottom: 14, display: 'flex', justifyContent: 'space-between' }}>
+              <span>⏱ {getElapsed(s.start_time)}</span>
+              <span>Price: ${s.games?.price}/game</span>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button style={{ ...btnS('primary', true), flex: 1, padding: '9px 0' }} onClick={() => addGame(s)}>+ Add Game</button>
+              <button style={{ ...btnS('danger', true), flex: 1, padding: '9px 0' }} onClick={() => finishSession(s)}>🏁 Finish</button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
+
+
 
 function StaffPayments() {
   const { profile } = useAuth();
