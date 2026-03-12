@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth, RequireAuth } from './context/AuthContext';
 import { signUp, resetPassword, updatePassword } from './lib/supabase';
 import * as db from './lib/supabase';
-import { supabase } from './lib/supabase';import {
+import { supabase } from './lib/supabase';
+import {
 useZones, useZone, useOwners, usePlayers, useStaff,
   useSessions, usePayments, useNotifications,
   usePlatformStats, useZoneAnalytics, useSubscriptionPlans,
@@ -854,6 +855,8 @@ function OwnerStaff() {
         options: { data: { name: form.name, role: 'staff' } } 
       });
       if (error) throw error;
+      // Wait for trigger to create profile
+      await new Promise(r => setTimeout(r, 2000));
       await supabase.from('profiles').update({ 
         zone_id: profile.zone_id, 
         role: 'staff', 
