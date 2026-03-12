@@ -4,7 +4,13 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+  auth: { 
+    persistSession: true, 
+    autoRefreshToken: true, 
+    detectSessionInUrl: true,
+    storageKey: 'gamezone-auth',
+    storage: window.localStorage,
+  },
 });
 
 export async function signIn(email, password) {
