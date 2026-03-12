@@ -1101,9 +1101,10 @@ function OwnerSubscription() {
         started_at: new Date().toISOString(),
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       }, { onConflict: 'zone_id' });
+      const { data: zoneInfo } = await supabase.from('game_zones').select('name').eq('id', profile?.zone_id).single();
       await supabase.from('notifications').insert({
         title: 'Subscription Upgrade Request',
-        message: `Zone "${profile?.game_zones?.name}" has requested an upgrade to ${selectedPlan.name} plan.`,
+        message: `Zone "${zoneInfo?.name || profile?.zone_id}" has requested an upgrade to ${selectedPlan.name} plan.`,
         type: 'info',
         sent_by: profile?.id,
         target_zone_id: null,
