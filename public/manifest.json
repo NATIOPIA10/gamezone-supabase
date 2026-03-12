@@ -1,0 +1,21 @@
+{
+  "name": "GameZone Management",
+  "short_name": "GameZone",
+  "description": "Game Zone Management System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0e1a",
+  "theme_color": "#00d4ff",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/00d4ff/000000?text=GZ",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/00d4ff/000000?text=GZ",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
