@@ -476,12 +476,17 @@ function SAOwners() {
   const filtered = (owners || []).filter(o => o.name?.toLowerCase().includes(search.toLowerCase()) || o.email?.toLowerCase().includes(search.toLowerCase()));
 
 const save = async () => {
-    await db.updateProfile(modal, { name: form.name, status: form.status, zone_id: form.zone_id || null });
-    if (form.zone_id) {
-      await db.updateZone(form.zone_id, { owner_id: modal });
+    try {
+      await db.updateProfile(modal, { name: form.name, status: form.status, zone_id: form.zone_id || null });
+      if (form.zone_id) {
+        await db.updateZone(form.zone_id, { owner_id: modal });
+      }
+      await refetch();
+      setModal(null);
+    } catch (e) {
+      console.error('Save owner error:', e.message);
+      alert('Error saving: ' + e.message);
     }
-    refetch();
-    setModal(null);
   };
 
   const toggleStatus = async (o) => {
