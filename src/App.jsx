@@ -799,12 +799,12 @@ function SASettings() {
 function OwnerOverview() {
   const { profile } = useAuth();
   const { data: analytics } = useZoneAnalytics(profile?.zone_id);
+  const { data: zoneData } = useZone(profile?.zone_id);
   const zone = analytics?.[0];
   return (
     <div>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Owner Dashboard</div>
-      <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Zone: <strong style={{ color: C.accent }}>{profile?.game_zones?.name || '—'}</strong></div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+<div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Zone: <strong style={{ color: C.accent }}>{zoneData?.name || profile?.game_zones?.name || '—'}</strong></div>      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
         <StatCard label="Total Revenue" value={fmt$(zone?.total_revenue)} color={C.accent} />
         <StatCard label="Total Players" value={zone?.total_players || 0} color={C.green} />
         <StatCard label="Sessions" value={zone?.total_sessions || 0} color={C.purple} />
