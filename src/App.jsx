@@ -526,12 +526,12 @@ const save = async () => {
         </table>
       </div>
 
-      {modal && (
+     {modal && (
        <Modal title="Edit Owner" onClose={() => setModal(null)}
           footer={<><button style={btnS('outline')} onClick={() => setModal(null)}>Cancel</button><button style={btnS('primary')} onClick={save}>Save</button></>}>
           <Field label="Full Name" value={form.name} onChange={v => setForm({ ...form, name: v })} />
           <Field label="Status" value={form.status} onChange={v => setForm({ ...form, status: v })} options={[{ value: 'active', label: 'Active' }, { value: 'suspended', label: 'Suspended' }, { value: 'pending', label: 'Pending' }]} />
-          <Field label="Assign Zone" value={form.zone_id || ''} onChange={v => setForm({ ...form, zone_id: v })} options={[{ value: '', label: '— No Zone —' }, ...(zones || []).map(z => ({ value: z.id, label: z.name }))]} />
+          <Field label="Assign Zone" value={form.zone_id || ''} onChange={v => setForm({ ...form, zone_id: v })} options={[{ value: '', label: '— No Zone —' }, ...(zones || []).filter(z => !z.owner_id || z.owner_id === modal).map(z => ({ value: z.id, label: z.name }))]} />
         </Modal>
       )}
     </div>
