@@ -1225,10 +1225,16 @@ function StaffSessions() {
     finally { setSaving(false); }
   };
 
+  const [addGameModal, setAddGameModal] = useState(null);
+  const [gamesToAdd, setGamesToAdd] = useState('1');
+
   const addGame = async (session) => {
-    const newGames = session.total_games + 1;
+    const add = Number(gamesToAdd) || 1;
+    const newGames = session.total_games + add;
     const newAmount = newGames * Number(session.games?.price || 0);
     await supabase.from('sessions').update({ total_games: newGames, total_amount: newAmount }).eq('id', session.id);
+    setAddGameModal(null);
+    setGamesToAdd('1');
     loadSessions();
   };
 
@@ -1352,17 +1358,29 @@ function StaffSessions() {
             </div>
 
             <div style={{ display: 'flex', gap: 8 }}>
-              <button style={{ ...btnS('primary', true), flex: 1, padding: '9px 0' }} onClick={() => addGame(s)}>+ Add Game</button>
+              <button style={{ ...btnS('primary', true), flex: 1, padding: '9px 0' }} onClick={() => { setAddGameModal(s); setGamesToAdd('1'); }}>+ Add Game</button>
               <button style={{ ...btnS('danger', true), flex: 1, padding: '9px 0' }} onClick={() => finishSession(s)}>🏁 Finish</button>
             </div>
           </div>
         ))}
       </div>
+    {addGameModal && (
+        <Modal title={`Add Games — ${addGameModal.customer_name}`} onClose={() => setAddGameModal(null)}
+          footer={<><button style={btnS('outline')} onClick={() => setAddGameModal(null)}>Cancel</button><button style={btnS('primary')} onClick={() => addGame(addGameModal)}>Add Games</button></>}>
+          <div style={{ marginBottom: 12, padding: '10px 14px', background: `${C.accent}10`, borderRadius: 8, fontSize: 13 }}>
+            <div>Game: <strong>{addGameModal.games?.game_name}</strong></div>
+            <div>Price per game: <strong style={{ color: C.green }}>${addGameModal.games?.price}</strong></div>
+            <div>Games played so far: <strong style={{ color: C.accent }}>{addGameModal.total_games}</strong></div>
+          </div>
+          <Field label="Number of Games to Add" type="number" value={gamesToAdd} onChange={setGamesToAdd} placeholder="e.g. 3" />
+          <div style={{ padding: '10px 14px', background: `${C.green}10`, borderRadius: 8, fontSize: 13, color: C.green }}>
+            New total: <strong>{addGameModal.total_games + (Number(gamesToAdd) || 0)} games</strong> = <strong>${(addGameModal.total_games + (Number(gamesToAdd) || 0)) * Number(addGameModal.games?.price || 0)}</strong>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
-
-
 
 function StaffPayments() {
   const { profile } = useAuth();
