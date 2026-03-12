@@ -13,6 +13,11 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let mounted = true;
 
+    // Hard timeout — never stuck longer than 4 seconds
+    const hardTimeout = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 4000);
+
     async function loadSession() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -23,6 +28,7 @@ export function AuthProvider({ children }) {
       } catch (err) {
         console.error('Session load error:', err);
       } finally {
+        clearTimeout(hardTimeout);
         if (mounted) setLoading(false);
       }
     }
@@ -58,6 +64,7 @@ export function AuthProvider({ children }) {
 
     return () => {
       mounted = false;
+      clearTimeout(hardTimeout);
       subscription.unsubscribe();
     };
   }, []);
