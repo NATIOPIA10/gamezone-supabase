@@ -1245,6 +1245,26 @@ function StaffSessions() {
     return h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
   };
 
+ const [playerSearch, setPlayerSearch] = useState('');
+  const [playerSuggestions, setPlayerSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const searchPlayers = async (query) => {
+    setPlayerSearch(query);
+    setForm({ ...form, customer_name: query });
+    if (query.length < 2) { setPlayerSuggestions([]); setShowSuggestions(false); return; }
+    const { data } = await supabase.from('players').select('id, name, phone').eq('zone_id', profile?.zone_id).ilike('name', `%${query}%`).limit(5);
+    setPlayerSuggestions(data || []);
+    setShowSuggestions(true);
+  };
+
+  const selectPlayer = (player) => {
+    setForm({ ...form, customer_name: player.name });
+    setPlayerSearch(player.name);
+    setPlayerSuggestions([]);
+    setShowSuggestions(false);
+  };
+
   return (
     <div>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Game Sessions</div>
@@ -1255,7 +1275,27 @@ function StaffSessions() {
         <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, color: C.accent }}>▶ Start New Session</div>
         {err && <ErrorMsg msg={err} />}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-          <Field label="Customer Name" value={form.customer_name} onChange={v => setForm({ ...form, customer_name: v })} placeholder="e.g. Dawit" required />
+          <div style={{ position: 'relative' }}>
+            <label style={{ display: 'block', fontSize: 11, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 5 }}>Customer Name *</label>
+            <input value={playerSearch} onChange={e => searchPlayers(e.target.value)} placeholder="Search registered player…" style={inp} autoComplete="off" />
+            {showSuggestions && playerSuggestions.length > 0 && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, zIndex: 100, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', marginTop: 4 }}>
+                {playerSuggestions.map(p => (
+                  <div key={p.id} onClick={() => selectPlayer(p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: `1px solid ${C.border}20`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    onMouseEnter={e => e.currentTarget.style.background = `${C.accent}15`}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <span style={{ fontWeight: 600 }}>{p.name}</span>
+                    {p.phone && <span style={{ fontSize: 11, color: C.muted }}>{p.phone}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {showSuggestions && playerSuggestions.length === 0 && playerSearch.length >= 2 && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, zIndex: 100, padding: '10px 14px', color: C.dim, fontSize: 13, marginTop: 4 }}>
+                No players found. <span style={{ color: C.accent, cursor: 'pointer' }} onClick={() => { setForm({ ...form, customer_name: playerSearch }); setShowSuggestions(false); }}>Use "{playerSearch}" anyway</span>
+              </div>
+            )}
+          </div>
           <Field label="Select Game" value={form.game_id} onChange={v => setForm({ ...form, game_id: v, device_number: '1' })}
             options={[{ value: '', label: '— Select game —' }, ...games.map(g => ({ value: g.id, label: `${g.game_name} ($${g.price})` }))]} />
           <Field label="Device Number" value={form.device_number} onChange={v => setForm({ ...form, device_number: v })} options={deviceOptions} />
