@@ -610,12 +610,83 @@ function SAPlayers() {
 
 function SASubscriptions() {
   const { data: plans, loading } = useSubscriptionPlans();
+  const [requests, setRequests] = useState([]);
+  const [approving, setApproving] = useState(null);
+
+  const loadRequests = async () => {
+    const { data } = await supabase.from('subscriptions')
+      .select('*, game_zones(name), subscription_plans(name, price_monthly)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    setRequests(data || []);
+  };
+
+  useEffect(() => { loadRequests(); }, []);
+
+  const approve = async (sub) => {
+    setApproving(sub.id);
+    try {
+      await supabase.from('subscriptions').update({
+        status: 'active',
+        started_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      }).eq('id', sub.id);
+      await supabase.from('notifications').insert({
+        title: 'Subscription Activated!',
+        message: `Your ${sub.subscription_plans?.name} plan has been activated by the admin.`,
+        type: 'success',
+        sent_by: null,
+        target_zone_id: sub.zone_id,
+      });
+      await loadRequests();
+    } finally { setApproving(null); }
+  };
+
+  const reject = async (sub) => {
+    await supabase.from('subscriptions').update({ status: 'cancelled' }).eq('id', sub.id);
+    await loadRequests();
+  };
+
   if (loading) return <Spinner />;
+
   return (
     <div>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Subscriptions</div>
-      <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Plans are fetched live from Supabase <code style={{ color: C.accent }}>subscription_plans</code> table.</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18, marginBottom: 28 }}>
+      <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Manage subscription plans and approve upgrade requests.</div>
+
+      {/* Pending Requests */}
+      {requests.length > 0 && (
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 14, color: C.yellow }}>
+            ⏳ Pending Upgrade Requests ({requests.length})
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {requests.map(r => (
+              <div key={r.id} style={{ ...card, padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: `3px solid ${C.yellow}` }}>
+                <div>
+                  <div style={{ fontWeight: 700 }}>{r.game_zones?.name}</div>
+                  <div style={{ fontSize: 13, color: C.muted }}>Requesting: <strong style={{ color: C.accent }}>{r.subscription_plans?.name}</strong> — ${r.subscription_plans?.price_monthly}/mo</div>
+                  <div style={{ fontSize: 11, color: C.dim }}>{fmtDate(r.created_at)}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button style={btnS('success')} onClick={() => approve(r)} disabled={approving === r.id}>{approving === r.id ? 'Approving…' : '✅ Approve'}</button>
+                  <button style={btnS('danger')} onClick={() => reject(r)}>❌ Reject</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {requests.length === 0 && (
+        <div style={{ ...card, padding: '14px 20px', marginBottom: 22, color: C.green, fontSize: 13 }}>
+          ✅ No pending subscription requests.
+        </div>
+      )}
+
+      {/* Plans */}
+      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Subscription Plans</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
         {(plans || []).map(p => (
           <div key={p.id} style={{ ...card, padding: 22, border: p.name === 'Pro' ? `2px solid ${C.accent}` : `1px solid ${C.border}` }}>
             {p.name === 'Pro' && <div style={{ background: C.accent, textAlign: 'center', padding: 5, fontSize: 10, fontWeight: 700, color: '#000', letterSpacing: 1, margin: '-22px -22px 18px', borderRadius: '12px 12px 0 0' }}>MOST POPULAR</div>}
