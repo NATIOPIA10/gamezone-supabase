@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth, RequireAuth } from './context/AuthContext';
 import { signUp, resetPassword, updatePassword } from './lib/supabase';
 import * as db from './lib/supabase';
-import {
+import { supabase } from './lib/supabase';import {
 useZones, useZone, useOwners, usePlayers, useStaff,
   useSessions, usePayments, useNotifications,
   usePlatformStats, useZoneAnalytics, useSubscriptionPlans,
@@ -848,12 +848,18 @@ function OwnerStaff() {
     if (!form.name || !form.email || !form.password) { setErr('All fields are required.'); return; }
     setSaving(true); setErr('');
     try {
-      const { data, error } = await import('../lib/supabase').then(m => m.supabase.auth.admin ? 
-        Promise.resolve({ data: null, error: { message: 'Use signup instead' } }) :
-        m.supabase.auth.signUp({ email: form.email, password: form.password, options: { data: { name: form.name, role: 'staff' } } })
-      );
+      const { data, error } = await supabase.auth.signUp({ 
+        email: form.email, 
+        password: form.password, 
+        options: { data: { name: form.name, role: 'staff' } } 
+      });
       if (error) throw error;
-      await import('../lib/supabase').then(m => m.supabase.from('profiles').update({ zone_id: profile.zone_id, role: 'staff', status: 'active', name: form.name }).eq('email', form.email));
+      await supabase.from('profiles').update({ 
+        zone_id: profile.zone_id, 
+        role: 'staff', 
+        status: 'active', 
+        name: form.name 
+      }).eq('email', form.email);
       await refetch();
       setModal(false);
       setForm({ name: '', email: '', password: '' });
