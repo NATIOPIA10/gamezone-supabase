@@ -74,8 +74,12 @@ export async function deleteZone(zoneId) {
 }
 
 export async function getAllOwners() {
-  const { data, error } = await supabase.from('profiles').select('*, game_zones(name)').eq('role', 'owner').order('created_at', { ascending: false });
-  if (error) throw error;
+  const { data, error } = await supabase.from('profiles').select('*').eq('role', 'owner').order('created_at', { ascending: false });
+  if (error) {
+    console.error('getAllOwners error:', error);
+    throw error;
+  }
+  console.log('owners data:', data);
   return data;
 }
 
