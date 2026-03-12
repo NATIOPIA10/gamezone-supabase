@@ -1238,8 +1238,20 @@ function StaffSessions() {
     loadSessions();
   };
 
-  const finishSession = async (session) => {
+ const [finishModal, setFinishModal] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+
+  const finishSession = async () => {
+    const session = finishModal;
     await supabase.from('sessions').update({ status: 'finished', end_time: new Date().toISOString() }).eq('id', session.id);
+    await supabase.from('payments').insert({
+      zone_id: profile?.zone_id,
+      amount: session.total_amount,
+      method: paymentMethod,
+      processed_by: profile?.id,
+      created_at: new Date().toISOString(),
+    });
+    setFinishModal(null);
     loadSessions();
   };
 
@@ -1359,12 +1371,43 @@ function StaffSessions() {
 
             <div style={{ display: 'flex', gap: 8 }}>
               <button style={{ ...btnS('primary', true), flex: 1, padding: '9px 0' }} onClick={() => { setAddGameModal(s); setGamesToAdd('1'); }}>+ Add Game</button>
-              <button style={{ ...btnS('danger', true), flex: 1, padding: '9px 0' }} onClick={() => finishSession(s)}>🏁 Finish</button>
+              <button style={{ ...btnS('danger', true), flex: 1, padding: '9px 0' }} onClick={() => { setFinishModal(s); setPaymentMethod('cash'); }}>🏁 Finish</button>
             </div>
           </div>
         ))}
       </div>
-    {addGameModal && (
+    {finishModal && (
+        <Modal title="Complete Payment" onClose={() => setFinishModal(null)}
+          footer={<><button style={btnS('outline')} onClick={() => setFinishModal(null)}>Cancel</button><button style={btnS('success')} onClick={finishSession}>✅ Confirm Payment</button></>}>
+          <div style={{ textAlign: 'center', marginBottom: 20 }}>
+            <div style={{ fontSize: 14, color: C.muted, marginBottom: 4 }}>Customer</div>
+            <div style={{ fontSize: 20, fontWeight: 800 }}>{finishModal.customer_name}</div>
+            <div style={{ fontSize: 13, color: C.muted }}>{finishModal.games?.game_name} · Device {finishModal.device_number}</div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
+            <div style={{ ...card, padding: '12px', textAlign: 'center', background: C.surface }}>
+              <div style={{ fontSize: 10, color: C.dim, marginBottom: 4 }}>GAMES PLAYED</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: C.accent }}>{finishModal.total_games}</div>
+            </div>
+            <div style={{ ...card, padding: '12px', textAlign: 'center', background: C.surface }}>
+              <div style={{ fontSize: 10, color: C.dim, marginBottom: 4 }}>PRICE/GAME</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: C.purple }}>${finishModal.games?.price}</div>
+            </div>
+            <div style={{ ...card, padding: '12px', textAlign: 'center', background: C.surface }}>
+              <div style={{ fontSize: 10, color: C.dim, marginBottom: 4 }}>TOTAL</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: C.green }}>${finishModal.total_amount}</div>
+            </div>
+          </div>
+          <Field label="Payment Method" value={paymentMethod} onChange={setPaymentMethod}
+            options={[{ value: 'cash', label: '💵 Cash' }, { value: 'card', label: '💳 Card' }, { value: 'mobile', label: '📱 Mobile Payment' }]} />
+          <div style={{ padding: '12px 16px', background: `${C.green}12`, border: `1px solid ${C.green}30`, borderRadius: 10, textAlign: 'center' }}>
+            <div style={{ fontSize: 13, color: C.muted }}>Amount to Collect</div>
+            <div style={{ fontSize: 32, fontWeight: 900, color: C.green }}>${finishModal.total_amount}</div>
+          </div>
+        </Modal>
+      )}
+
+      {addGameModal && (
         <Modal title={`Add Games — ${addGameModal.customer_name}`} onClose={() => setAddGameModal(null)}
           footer={<><button style={btnS('outline')} onClick={() => setAddGameModal(null)}>Cancel</button><button style={btnS('primary')} onClick={() => addGame(addGameModal)}>Add Games</button></>}>
           <div style={{ marginBottom: 12, padding: '10px 14px', background: `${C.accent}10`, borderRadius: 8, fontSize: 13 }}>
