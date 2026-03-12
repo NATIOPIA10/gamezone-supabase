@@ -6,10 +6,10 @@ import { signUp, resetPassword, updatePassword } from './lib/supabase';
 import * as db from './lib/supabase';
 import { supabase } from './lib/supabase';
 import {
-useZones, useZone, useOwners, usePlayers, useStaff,
+  useZones, useZone, useOwners, usePlayers, useStaff,
   useSessions, usePayments, useNotifications,
   usePlatformStats, useZoneAnalytics, useSubscriptionPlans,
-  useActiveSubscription, useRevenueByMonth, useMutation,
+  useActiveSubscription, useRevenueByMonth, useMutation, useAllUsers,
 } from './hooks/useSupabase';
 
 // ─── COLORS ──────────────────────────────────────────────────
@@ -99,6 +99,10 @@ function Modal({ title, onClose, children, footer }) {
       </div>
     </div>
   );
+}
+
+function MiniChart({ data }) {
+  return <BarChart data={data} color={C.accent} height={100} />;
 }
 
 function BarChart({ data, color, height = 110 }) {
@@ -918,6 +922,53 @@ function OwnerStaff() {
     </div>
   );
 }
+
+function OwnerEarnings() {
+  const { profile } = useAuth();
+  const { data: payments, loading } = usePayments(profile?.zone_id);
+  const { data: revenue } = useRevenueByMonth(profile?.zone_id);
+
+  const chartData = (revenue || []).slice(0, 6).reverse().map(r => ({ label: new Date(r.month).toLocaleString('default', { month: 'short' }), value: Number(r.revenue) }));
+  const total = (payments || []).reduce((s, p) => s + Number(p.amount), 0);
+
+  if (loading) return <Spinner />;
+
+  return (
+    <div>
+      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Earnings</div>
+      <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Track your zone revenue and payments.</div>
+      <div style={{ ...card, padding: 20, marginBottom: 22, display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ fontSize: 32 }}>💰</div>
+        <div>
+          <div style={{ fontSize: 13, color: C.muted }}>Total Revenue</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: C.green }}>{fmt$(total)}</div>
+        </div>
+      </div>
+      <div style={{ ...card, padding: 20, marginBottom: 22 }}>
+        <div style={{ fontWeight: 700, marginBottom: 14 }}>Monthly Revenue</div>
+        <MiniChart data={chartData} />
+      </div>
+      <div style={{ ...card, padding: 20 }}>
+        <div style={{ fontWeight: 700, marginBottom: 14 }}>Recent Payments</div>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead><tr>{['Player','Amount','Method','Date'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+          <tbody>
+            {(payments || []).slice(0, 20).map(p => (
+              <tr key={p.id}>
+                <td style={td}>{p.players?.name || '—'}</td>
+                <td style={{ ...td, color: C.green, fontWeight: 700 }}>{fmt$(p.amount)}</td>
+                <td style={td}>{p.method}</td>
+                <td style={{ ...td, color: C.muted }}>{fmtDate(p.created_at)}</td>
+              </tr>
+            ))}
+            {!payments?.length && <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No payments yet.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 
 function OwnerGames() {
   const { profile } = useAuth();
