@@ -14,7 +14,10 @@ export function AuthProvider({ children }) {
     let mounted = true;
 
     async function loadSession() {
-      console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL)
+      // Safety timeout - never stay loading more than 5 seconds
+      const timeout = setTimeout(() => {
+        if (mounted) setLoading(false);
+      }, 5000);
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session && mounted) {
@@ -24,6 +27,7 @@ export function AuthProvider({ children }) {
       } catch (err) {
         console.error('Session load error:', err);
       } finally {
+        clearTimeout(timeout);
         if (mounted) setLoading(false);
       }
     }
