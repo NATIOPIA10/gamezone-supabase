@@ -262,6 +262,13 @@ function AuthPage() {
 // ─── LAYOUT ───────────────────────────────────────────────────
 function Layout({ page, setPage, children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const { profile, logout } = useAuth();
 
   const navMap = {
@@ -296,10 +303,13 @@ function Layout({ page, setPage, children }) {
   const items = navMap[profile?.role] || [];
   const currentLabel = items.find(i => i.key === page)?.label || 'Dashboard';
 
+  const isOwnerOrStaff = profile?.role === 'owner' || profile?.role === 'staff';
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      {/* Sidebar */}
-<div style={{ width: 230, background: C.surface, borderRight: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 200, overflowY: 'auto', transform: window.innerWidth < 768 ? (sidebarOpen ? 'translateX(0)' : 'translateX(-100%)') : 'translateX(0)', transition: 'transform 0.3s ease' }}>        <div style={{ padding: '18px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+      {/* Sidebar - hidden on mobile for owner/staff */}
+      <div style={{ width: 230, background: C.surface, borderRight: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 200, overflowY: 'auto', transform: isMobile && isOwnerOrStaff ? 'translateX(-100%)' : 'translateX(0)', transition: 'transform 0.3s ease' }}>
+        <div style={{ padding: '18px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 34, height: 34, background: `linear-gradient(135deg, ${C.accent}, ${C.purple})`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>🎮</div>
           <div>
             <div style={{ fontWeight: 800, fontSize: 14 }}>GameZone</div>
@@ -330,8 +340,20 @@ function Layout({ page, setPage, children }) {
         </div>
       </div>
 
+   {/* Mobile bottom nav for owner/staff */}
+      {isMobile && isOwnerOrStaff && (
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: C.surface, borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '8px 0', zIndex: 300 }}>
+          {items.map(it => (
+            <div key={it.key} onClick={() => setPage(it.key)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer', padding: '4px 8px', borderRadius: 8, background: page === it.key ? `${C.accent}18` : 'transparent', minWidth: 50 }}>
+              <span style={{ fontSize: 20 }}>{it.icon}</span>
+              <span style={{ fontSize: 9, color: page === it.key ? C.accent : C.muted, fontWeight: page === it.key ? 700 : 400, textAlign: 'center', lineHeight: 1.2 }}>{it.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Main */}
-<div style={{ marginLeft: window.innerWidth < 768 ? 0 : 230, flex: 1 }}>        <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: '14px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
+      <div style={{ marginLeft: isMobile ? 0 : 230, flex: 1, paddingBottom: isMobile && isOwnerOrStaff ? 80 : 0 }}>        <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: '14px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
   <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: C.text, fontSize: 22, cursor: 'pointer', display: window.innerWidth < 768 ? 'block' : 'none' }}>☰</button>
   <div style={{ fontSize: 19, fontWeight: 700 }}>{currentLabel}</div>
