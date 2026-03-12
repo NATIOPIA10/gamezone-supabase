@@ -99,6 +99,7 @@ export async function getAllPlayers(zoneId = null) {
   let query = supabase.from('players').select('*, game_zones(name)').order('created_at', { ascending: false });
   if (zoneId) query = query.eq('zone_id', zoneId);
   const { data, error } = await query;
+  console.log('getAllPlayers zoneId:', zoneId, 'data:', data, 'error:', error);
   if (error) throw error;
   return data;
 }
