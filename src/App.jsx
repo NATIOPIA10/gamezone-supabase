@@ -839,6 +839,27 @@ function OwnerOverview() {
 function OwnerStaff() {
   const { profile } = useAuth();
   const { data: staff, loading, refetch } = useStaff(profile?.zone_id);
+  const [modal, setModal] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [err, setErr] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const addStaff = async () => {
+    if (!form.name || !form.email || !form.password) { setErr('All fields are required.'); return; }
+    setSaving(true); setErr('');
+    try {
+      const { data, error } = await import('../lib/supabase').then(m => m.supabase.auth.admin ? 
+        Promise.resolve({ data: null, error: { message: 'Use signup instead' } }) :
+        m.supabase.auth.signUp({ email: form.email, password: form.password, options: { data: { name: form.name, role: 'staff' } } })
+      );
+      if (error) throw error;
+      await import('../lib/supabase').then(m => m.supabase.from('profiles').update({ zone_id: profile.zone_id, role: 'staff', status: 'active', name: form.name }).eq('email', form.email));
+      await refetch();
+      setModal(false);
+      setForm({ name: '', email: '', password: '' });
+    } catch (e) { setErr(e.message); }
+    finally { setSaving(false); }
+  };
 
   const toggleStatus = async (s) => {
     await db.updateProfile(s.id, { status: s.status === 'active' ? 'suspended' : 'active' });
@@ -849,8 +870,20 @@ function OwnerStaff() {
 
   return (
     <div>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 22 }}>My Staff</div>
-      <div style={{ color: C.muted, fontSize: 13, marginBottom: 18 }}>Staff accounts are created by registering with the Staff role assigned by you.</div>
+      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>My Staff</div>
+      <div style={{ color: C.muted, fontSize: 13, marginBottom: 18 }}>Add and manage staff for your zone.</div>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
+        <button style={btnS('primary')} onClick={() => { setForm({ name: '', email: '', password: '' }); setErr(''); setModal(true); }}>+ Add Staff</button>
+      </div>
+      {modal && (
+        <Modal title="Add Staff Member" onClose={() => setModal(false)}
+          footer={<><button style={btnS('outline')} onClick={() => setModal(false)}>Cancel</button><button style={btnS('primary')} onClick={addStaff} disabled={saving}>{saving ? 'Adding…' : 'Add Staff'}</button></>}>
+          {err && <ErrorMsg msg={err} />}
+          <Field label="Full Name" value={form.name} onChange={v => setForm({ ...form, name: v })} required />
+          <Field label="Email" type="email" value={form.email} onChange={v => setForm({ ...form, email: v })} required />
+          <Field label="Password" type="password" value={form.password} onChange={v => setForm({ ...form, password: v })} required />
+        </Modal>
+      )}
       <div style={{ ...card, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{['Name', 'Email', 'Status', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
