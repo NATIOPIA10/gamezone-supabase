@@ -1144,6 +1144,15 @@ function StaffRegisterPlayer() {
     if (!form.name) { setErr('Name is required.'); return; }
     setSaving(true); setErr('');
     try {
+      // Check if player already exists in this zone
+      if (form.phone) {
+        const { data: existing } = await supabase.from('players').select('id, name').eq('zone_id', profile.zone_id).eq('phone', form.phone).single();
+        if (existing) { setErr(`Player "${existing.name}" is already registered with this phone number in your zone.`); setSaving(false); return; }
+      }
+      if (form.email) {
+        const { data: existing } = await supabase.from('players').select('id, name').eq('zone_id', profile.zone_id).eq('email', form.email).single();
+        if (existing) { setErr(`Player "${existing.name}" is already registered with this email in your zone.`); setSaving(false); return; }
+      }
       await db.createPlayer({ ...form, zone_id: profile.zone_id, registered_by: profile.id, status: 'active' });
       setOk(`${form.name} registered successfully!`);
       setForm({ name: '', email: '', phone: '' });
