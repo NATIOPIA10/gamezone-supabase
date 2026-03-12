@@ -1080,22 +1080,56 @@ function OwnerGames() {
 
 function OwnerSubscription() {
   const { profile } = useAuth();
-  const { data: sub, loading } = useActiveSubscription(profile?.zone_id);
+  const { data: sub, loading, refetch } = useActiveSubscription(profile?.zone_id);
   const { data: plans } = useSubscriptionPlans();
+  const [upgradeModal, setUpgradeModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [upgrading, setUpgrading] = useState(false);
+  const [msg, setMsg] = useState('');
+
   if (loading) return <Spinner />;
-  const plan = sub?.subscription_plans || plans?.find(p => p.name === 'Basic');
+  const currentPlan = sub?.subscription_plans || plans?.find(p => p.name === 'Basic');
+
+  const requestUpgrade = async () => {
+    if (!selectedPlan) return;
+    setUpgrading(true);
+    try {
+      await supabase.from('subscriptions').upsert({
+        zone_id: profile?.zone_id,
+        plan_id: selectedPlan.id,
+        status: 'pending',
+        started_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      }, { onConflict: 'zone_id' });
+      await supabase.from('notifications').insert({
+        title: 'Subscription Upgrade Request',
+        message: `Zone "${profile?.game_zones?.name}" has requested an upgrade to ${selectedPlan.name} plan.`,
+        type: 'info',
+        sent_by: profile?.id,
+        target_zone_id: null,
+      });
+      setMsg(`Upgrade to ${selectedPlan.name} requested! Admin will activate it shortly.`);
+      setUpgradeModal(false);
+      refetch();
+    } catch(e) { setMsg('Error: ' + e.message); }
+    finally { setUpgrading(false); }
+  };
+
+  const planColor = { Basic: C.muted, Pro: C.accent, Premium: C.purple };
 
   return (
     <div>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 22 }}>Subscription</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      {msg && <SuccessMsg msg={msg} />}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 28 }}>
         <div style={{ ...card, padding: 24, border: `2px solid ${C.accent}` }}>
           <div style={{ fontSize: 11, color: C.dim, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Current Plan</div>
-          <div style={{ fontSize: 26, fontWeight: 900, color: C.accent, marginBottom: 4 }}>{plan?.name || '—'}</div>
-          <div style={{ fontSize: 32, fontWeight: 800, marginBottom: 14 }}>${plan?.price_monthly || 0}<span style={{ fontSize: 13, color: C.muted }}>/mo</span></div>
-          {(typeof plan?.features === 'string' ? JSON.parse(plan.features) : plan?.features || []).map(f => (
+          <div style={{ fontSize: 26, fontWeight: 900, color: C.accent, marginBottom: 4 }}>{currentPlan?.name || '—'}</div>
+          <div style={{ fontSize: 32, fontWeight: 800, marginBottom: 14 }}>${currentPlan?.price_monthly || 0}<span style={{ fontSize: 13, color: C.muted }}>/mo</span></div>
+          {(typeof currentPlan?.features === 'string' ? JSON.parse(currentPlan.features) : currentPlan?.features || []).map(f => (
             <div key={f} style={{ display: 'flex', gap: 7, marginBottom: 8, fontSize: 13, color: C.muted }}><span style={{ color: C.green }}>✓</span>{f}</div>
           ))}
+          <button style={{ ...btnS('primary'), width: '100%', marginTop: 16 }} onClick={() => setUpgradeModal(true)}>⬆ Upgrade Plan</button>
         </div>
         <div style={{ ...card, padding: 24 }}>
           <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 18 }}>Billing Details</div>
@@ -1103,7 +1137,7 @@ function OwnerSubscription() {
             ['Status', sub ? badge(sub.status) : badge('pending')],
             ['Started', fmtDate(sub?.started_at)],
             ['Expires', fmtDate(sub?.expires_at)],
-            ['Max Stations', plan?.max_stations === 999 ? 'Unlimited' : plan?.max_stations || '—'],
+            ['Max Stations', currentPlan?.max_stations === 999 ? 'Unlimited' : currentPlan?.max_stations || '—'],
           ].map(([label, val]) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, borderBottom: `1px solid ${C.border}20`, paddingBottom: 14 }}>
               <span style={{ color: C.muted, fontSize: 13 }}>{label}</span>
@@ -1112,6 +1146,37 @@ function OwnerSubscription() {
           ))}
         </div>
       </div>
+
+      {/* All Plans */}
+      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Available Plans</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+        {(plans || []).map(p => (
+          <div key={p.id} style={{ ...card, padding: 20, border: `2px solid ${p.id === currentPlan?.id ? C.accent : C.border}`, opacity: p.id === currentPlan?.id ? 0.7 : 1 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: planColor[p.name] || C.muted, marginBottom: 4 }}>{p.name}</div>
+            <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 12 }}>${p.price_monthly}<span style={{ fontSize: 12, color: C.muted }}>/mo</span></div>
+            {(typeof p.features === 'string' ? JSON.parse(p.features) : p.features || []).map(f => (
+              <div key={f} style={{ display: 'flex', gap: 6, marginBottom: 6, fontSize: 12, color: C.muted }}><span style={{ color: C.green }}>✓</span>{f}</div>
+            ))}
+            <button style={{ ...btnS(p.id === currentPlan?.id ? 'outline' : 'primary'), width: '100%', marginTop: 14 }}
+              disabled={p.id === currentPlan?.id}
+              onClick={() => { setSelectedPlan(p); setUpgradeModal(true); }}>
+              {p.id === currentPlan?.id ? '✓ Current Plan' : `Upgrade to ${p.name}`}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {upgradeModal && selectedPlan && (
+        <Modal title="Confirm Upgrade" onClose={() => setUpgradeModal(false)}
+          footer={<><button style={btnS('outline')} onClick={() => setUpgradeModal(false)}>Cancel</button><button style={btnS('primary')} onClick={requestUpgrade} disabled={upgrading}>{upgrading ? 'Requesting…' : 'Request Upgrade'}</button></>}>
+          <div style={{ textAlign: 'center', padding: '10px 0 20px' }}>
+            <div style={{ fontSize: 13, color: C.muted, marginBottom: 8 }}>Upgrading to</div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: planColor[selectedPlan.name] || C.accent }}>{selectedPlan.name}</div>
+            <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>${selectedPlan.price_monthly}<span style={{ fontSize: 12, color: C.muted }}>/mo</span></div>
+            <div style={{ fontSize: 13, color: C.muted }}>Your request will be sent to the admin for approval.</div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
