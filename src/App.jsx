@@ -1250,13 +1250,15 @@ function StaffSessions() {
     const session = finishModal;
     try {
       await supabase.from('sessions').update({ status: 'finished', end_time: new Date().toISOString() }).eq('id', session.id);
-      // Look up player by name in this zone
-      const { data: playerData } = await supabase.from('players').select('id').eq('zone_id', profile?.zone_id).ilike('name', session.customer_name).single();
+      // Look up player by name in this zone (case insensitive)
+      const { data: playerData } = await supabase.from('players').select('id').eq('zone_id', profile?.zone_id).ilike('name', session.customer_name.trim()).maybeSingle();
+      // Fetch latest session data to get accurate total
+      const { data: latestSession } = await supabase.from('sessions').select('total_amount').eq('id', session.id).single();
       const { error } = await supabase.from('payments').insert({
         zone_id: profile?.zone_id,
         session_id: session.id,
         player_id: playerData?.id || null,
-        amount: session.total_amount,
+        amount: latestSession?.total_amount || session.total_amount,
         method: paymentMethod,
         processed_by: profile?.id,
         created_at: new Date().toISOString(),
