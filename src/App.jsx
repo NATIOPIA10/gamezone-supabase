@@ -342,7 +342,7 @@ function Layout({ page, setPage, children }) {
       </div>
 
    {/* Mobile bottom nav for owner/staff */}
-      {isMobile && isOwnerOrStaff && (
+     {isMobile && isOwnerOrStaff && (
         <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: C.surface, borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '8px 0', zIndex: 300 }}>
           {items.map(it => (
             <div key={it.key} onClick={() => setPage(it.key)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer', padding: '4px 8px', borderRadius: 8, background: page === it.key ? `${C.accent}18` : 'transparent', minWidth: 50 }}>
@@ -350,6 +350,10 @@ function Layout({ page, setPage, children }) {
               <span style={{ fontSize: 9, color: page === it.key ? C.accent : C.muted, fontWeight: page === it.key ? 700 : 400, textAlign: 'center', lineHeight: 1.2 }}>{it.label}</span>
             </div>
           ))}
+          <div onClick={logout} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer', padding: '4px 8px', borderRadius: 8, minWidth: 50 }}>
+            <span style={{ fontSize: 20 }}>⏏</span>
+            <span style={{ fontSize: 9, color: C.red, fontWeight: 600, textAlign: 'center', lineHeight: 1.2 }}>Logout</span>
+          </div>
         </div>
       )}
 
