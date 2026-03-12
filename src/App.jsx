@@ -811,8 +811,33 @@ function NotificationsPage({ zoneId = null }) {
                 <div style={{ color: C.muted, fontSize: 13, marginBottom: 6 }}>{n.message}</div>
                 <div style={{ fontSize: 11, color: C.dim }}>{fmtDate(n.created_at)} {fmtTime(n.created_at)}{n.profiles?.name ? ` · Sent by ${n.profiles.name}` : ''}</div>
               </div>
-              {!isRead && <button style={btnS('outline', true)} onClick={() => markRead(n.id)}>Mark Read</button>}
-            </div>
+<div style={{ display: 'flex', gap: 8, flexDirection: 'column', alignItems: 'flex-end' }}>
+                {!isRead && <button style={btnS('outline', true)} onClick={() => markRead(n.id)}>Mark Read</button>}
+                {profile?.role === 'superadmin' && n.title === 'Subscription Upgrade Request' && n.target_zone_id && (
+                  <button style={btnS('success', true)} onClick={async () => {
+                    const { data: sub } = await supabase.from('subscriptions').select('*, subscription_plans(name)').eq('zone_id', n.target_zone_id).eq('status', 'pending').single();
+                    if (sub) {
+                      await supabase.from('subscriptions').update({
+                        status: 'active',
+                        started_at: new Date().toISOString(),
+                        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                      }).eq('id', sub.id);
+                      await supabase.from('notifications').insert({
+                        title: 'Subscription Activated!',
+                        message: `Your ${sub.subscription_plans?.name} plan has been activated!`,
+                        type: 'success',
+                        sent_by: null,
+                        target_zone_id: n.target_zone_id,
+                      });
+                      await markRead(n.id);
+                      refetch();
+                      alert('Subscription approved!');
+                    } else {
+                      alert('No pending subscription request found for this zone.');
+                    }
+                  }}>✅ Approve Subscription</button>
+                )}
+              </div>            </div>
           );
         })}
         {!notifications?.length && <div style={{ ...card, padding: 30, textAlign: 'center', color: C.dim }}>No notifications yet.</div>}
