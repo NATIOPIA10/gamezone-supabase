@@ -1250,9 +1250,12 @@ function StaffSessions() {
     const session = finishModal;
     try {
       await supabase.from('sessions').update({ status: 'finished', end_time: new Date().toISOString() }).eq('id', session.id);
+      // Look up player by name in this zone
+      const { data: playerData } = await supabase.from('players').select('id').eq('zone_id', profile?.zone_id).ilike('name', session.customer_name).single();
       const { error } = await supabase.from('payments').insert({
         zone_id: profile?.zone_id,
         session_id: session.id,
+        player_id: playerData?.id || null,
         amount: session.total_amount,
         method: paymentMethod,
         processed_by: profile?.id,
