@@ -286,6 +286,7 @@ function Layout({ page, setPage, children }) {
     ],
     owner: [
       { key: 'overview', icon: '▦', label: 'Dashboard' },
+      { key: 'games', icon: '🕹️', label: 'Games' },
       { key: 'staff', icon: '👥', label: 'My Staff' },
       { key: 'players', icon: '🎮', label: 'Players' },
       { key: 'sessions', icon: '⏱️', label: 'Sessions' },
@@ -918,48 +919,113 @@ function OwnerStaff() {
   );
 }
 
-function OwnerEarnings() {
+function OwnerGames() {
   const { profile } = useAuth();
-  const { data: payments, loading } = usePayments(profile?.zone_id);
-  const { data: revenue } = useRevenueByMonth(profile?.zone_id);
+  const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState(null);
+  const [form, setForm] = useState({ game_name: '', devices: '1', game_type: 'Normal', price: '' });
+  const [err, setErr] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const chartData = (revenue || []).slice(0, 6).reverse().map(r => ({ label: new Date(r.month).toLocaleString('default', { month: 'short' }), value: Number(r.revenue) }));
-  const total = (payments || []).reduce((s, p) => s + Number(p.amount), 0);
+  const loadGames = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.from('games').select('*').eq('business_id', profile?.zone_id).order('created_at', { ascending: false });
+      if (error) throw error;
+      setGames(data || []);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { if (profile?.zone_id) loadGames(); }, [profile?.zone_id]);
+
+  const openNew = () => { setForm({ game_name: '', devices: '1', game_type: 'Normal', price: '' }); setErr(''); setModal('new'); };
+  const openEdit = (g) => { setForm({ game_name: g.game_name, devices: String(g.devices), game_type: g.game_type, price: String(g.price) }); setErr(''); setModal(g.id); };
+
+  const save = async () => {
+    if (!form.game_name || !form.price) { setErr('Game name and price are required.'); return; }
+    setSaving(true); setErr('');
+    try {
+      const payload = { game_name: form.game_name, devices: Number(form.devices), game_type: form.game_type, price: Number(form.price), business_id: profile?.zone_id };
+      if (modal === 'new') {
+        await supabase.from('games').insert(payload);
+      } else {
+        await supabase.from('games').update(payload).eq('id', modal);
+      }
+      await loadGames();
+      setModal(null);
+    } catch (e) { setErr(e.message); }
+    finally { setSaving(false); }
+  };
+
+  const del = async (id) => {
+    if (!confirm('Delete this game?')) return;
+    await supabase.from('games').delete().eq('id', id);
+    loadGames();
+  };
+
+  const jotoniPrices = [{ value: '5', label: '$5' }, { value: '10', label: '$10' }, { value: '15', label: '$15' }, { value: '20', label: '$20' }];
+  const gameTypeColor = { Normal: C.accent, Jotoni: C.purple };
 
   if (loading) return <Spinner />;
 
   return (
     <div>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 22 }}>Earnings</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 22 }}>
-        <StatCard label="All-Time Revenue" value={fmt$(total)} color={C.accent} />
-        <StatCard label="Transactions" value={payments?.length || 0} color={C.green} />
-        <StatCard label="Avg Transaction" value={payments?.length ? fmt$(total / payments.length) : '$0'} color={C.purple} />
+      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Game Management</div>
+      <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Manage games available in your zone.</div>
+      <div style={{ marginBottom: 22, display: 'flex', justifyContent: 'flex-end' }}>
+        <button style={btnS('primary')} onClick={openNew}>+ Add Game</button>
       </div>
-      <div style={{ ...card, padding: '20px 22px', marginBottom: 22 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Monthly Revenue</div>
-        {chartData.length ? <BarChart data={chartData} color={C.green} height={120} /> : <div style={{ color: C.dim, textAlign: 'center', padding: 20 }}>No revenue data yet.</div>}
+      {games.length === 0 && (
+        <div style={{ ...card, padding: 40, textAlign: 'center', color: C.dim }}>
+          No games yet. Click "Add Game" to get started!
+        </div>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
+        {games.map(g => (
+          <div key={g.id} style={{ ...card, padding: 20, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: gameTypeColor[g.game_type] || C.accent }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div style={{ fontSize: 16, fontWeight: 800 }}>{g.game_name}</div>
+              <span style={{ padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 700, color: gameTypeColor[g.game_type] || C.accent, background: `${gameTypeColor[g.game_type] || C.accent}20` }}>{g.game_type}</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <span style={{ color: C.muted }}>Devices</span>
+                <span style={{ fontWeight: 700 }}>{g.devices}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <span style={{ color: C.muted }}>Price</span>
+                <span style={{ fontWeight: 800, color: C.green, fontSize: 16 }}>${g.price}</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button style={{ ...btnS('outline', true), flex: 1 }} onClick={() => openEdit(g)}>✏ Edit</button>
+              <button style={{ ...btnS('danger', true), flex: 1 }} onClick={() => del(g.id)}>🗑 Delete</button>
+            </div>
+          </div>
+        ))}
       </div>
-      <div style={{ ...card, overflow: 'hidden' }}>
-        <div style={{ padding: '14px 18px', borderBottom: `1px solid ${C.border}` }}><span style={{ fontWeight: 700 }}>Recent Payments</span></div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Player', 'Amount', 'Method', 'Date'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
-          <tbody>
-            {(payments || []).slice(0, 20).map(p => (
-              <tr key={p.id}>
-                <td style={td}>{p.players?.name || '—'}</td>
-                <td style={{ ...td, color: C.green, fontWeight: 700 }}>{fmt$(p.amount)}</td>
-                <td style={td}>{p.method}</td>
-                <td style={{ ...td, color: C.muted }}>{fmtDate(p.created_at)}</td>
-              </tr>
-            ))}
-            {!payments?.length && <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No payments yet.</td></tr>}
-          </tbody>
-        </table>
-      </div>
+      {modal && (
+        <Modal title={modal === 'new' ? 'Add New Game' : 'Edit Game'} onClose={() => setModal(null)}
+          footer={<><button style={btnS('outline')} onClick={() => setModal(null)}>Cancel</button><button style={btnS('primary')} onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save Game'}</button></>}>
+          {err && <ErrorMsg msg={err} />}
+          <Field label="Game Name" value={form.game_name} onChange={v => setForm({ ...form, game_name: v })} placeholder="e.g. FIFA 25" required />
+          <Field label="Number of Devices" type="number" value={form.devices} onChange={v => setForm({ ...form, devices: v })} placeholder="e.g. 4" required />
+          <Field label="Game Type" value={form.game_type} onChange={v => setForm({ ...form, game_type: v, price: '' })} options={[{ value: 'Normal', label: 'Normal' }, { value: 'Jotoni', label: 'Jotoni' }]} />
+          {form.game_type === 'Jotoni' ? (
+            <Field label="Price" value={form.price} onChange={v => setForm({ ...form, price: v })} options={jotoniPrices} />
+          ) : (
+            <Field label="Price ($)" type="number" value={form.price} onChange={v => setForm({ ...form, price: v })} placeholder="Enter price manually" required />
+          )}
+        </Modal>
+      )}
     </div>
   );
 }
+
+
 
 function OwnerSubscription() {
   const { profile } = useAuth();
@@ -1152,7 +1218,7 @@ function AppPages({ page, setPage }) {
   const zoneId = profile?.zone_id;
 
   const saPages = { overview: SAOverview, zones: SAZones, owners: SAOwners, players: SAPlayers, subscriptions: SASubscriptions, reports: SAReports, notifications: () => <NotificationsPage />, admins: SAAdmins, settings: SASettings };
-  const ownerPages = { overview: OwnerOverview, staff: OwnerStaff, players: () => <PlayersList zoneId={zoneId} />, sessions: StaffSessions, earnings: OwnerEarnings, subscription: OwnerSubscription, notifications: () => <NotificationsPage zoneId={zoneId} /> };
+  const ownerPages = { overview: OwnerOverview, games: OwnerGames, staff: OwnerStaff, players: () => <PlayersList zoneId={zoneId} />, sessions: StaffSessions, earnings: OwnerEarnings, subscription: OwnerSubscription, notifications: () => <NotificationsPage zoneId={zoneId} /> };
   const staffPages = { overview: StaffOverview, register: StaffRegisterPlayer, sessions: StaffSessions, payments: StaffPayments };
 
   const pages = role === 'superadmin' ? saPages : role === 'owner' ? ownerPages : staffPages;
