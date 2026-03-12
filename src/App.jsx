@@ -1225,16 +1225,21 @@ function StaffSessions() {
     finally { setSaving(false); }
   };
 
-  const [addGameModal, setAddGameModal] = useState(null);
-  const [gamesToAdd, setGamesToAdd] = useState('1');
+ const [addGameModal, setAddGameModal] = useState(null);
+  const [addGameForm, setAddGameForm] = useState({ game_id: '', device_number: '1', games_count: '1' });
+
+  const selectedAddGame = games.find(g => g.id === addGameForm.game_id);
+  const addDeviceOptions = selectedAddGame ? Array.from({ length: selectedAddGame.devices }, (_, i) => ({ value: String(i + 1), label: `Device ${i + 1}` })) : [{ value: '1', label: 'Device 1' }];
 
   const addGame = async (session) => {
-    const add = Number(gamesToAdd) || 1;
+    if (!addGameForm.game_id) { alert('Please select a game.'); return; }
+    const add = Number(addGameForm.games_count) || 1;
+    const gamePrice = Number(selectedAddGame?.price || 0);
     const newGames = session.total_games + add;
-    const newAmount = newGames * Number(session.games?.price || 0);
+    const newAmount = Number(session.total_amount) + (add * gamePrice);
     await supabase.from('sessions').update({ total_games: newGames, total_amount: newAmount }).eq('id', session.id);
     setAddGameModal(null);
-    setGamesToAdd('1');
+    setAddGameForm({ game_id: '', device_number: '1', games_count: '1' });
     loadSessions();
   };
 
@@ -1410,15 +1415,21 @@ function StaffSessions() {
       {addGameModal && (
         <Modal title={`Add Games — ${addGameModal.customer_name}`} onClose={() => setAddGameModal(null)}
           footer={<><button style={btnS('outline')} onClick={() => setAddGameModal(null)}>Cancel</button><button style={btnS('primary')} onClick={() => addGame(addGameModal)}>Add Games</button></>}>
-          <div style={{ marginBottom: 12, padding: '10px 14px', background: `${C.accent}10`, borderRadius: 8, fontSize: 13 }}>
-            <div>Game: <strong>{addGameModal.games?.game_name}</strong></div>
-            <div>Price per game: <strong style={{ color: C.green }}>${addGameModal.games?.price}</strong></div>
+          <div style={{ marginBottom: 14, padding: '10px 14px', background: `${C.accent}10`, borderRadius: 8, fontSize: 13 }}>
+            <div>Customer: <strong>{addGameModal.customer_name}</strong></div>
             <div>Games played so far: <strong style={{ color: C.accent }}>{addGameModal.total_games}</strong></div>
+            <div>Total so far: <strong style={{ color: C.green }}>${addGameModal.total_amount}</strong></div>
           </div>
-          <Field label="Number of Games to Add" type="number" value={gamesToAdd} onChange={setGamesToAdd} placeholder="e.g. 3" />
-          <div style={{ padding: '10px 14px', background: `${C.green}10`, borderRadius: 8, fontSize: 13, color: C.green }}>
-            New total: <strong>{addGameModal.total_games + (Number(gamesToAdd) || 0)} games</strong> = <strong>${(addGameModal.total_games + (Number(gamesToAdd) || 0)) * Number(addGameModal.games?.price || 0)}</strong>
-          </div>
+          <Field label="Select Game" value={addGameForm.game_id} onChange={v => setAddGameForm({ ...addGameForm, game_id: v, device_number: '1' })}
+            options={[{ value: '', label: '— Select game —' }, ...games.map(g => ({ value: g.id, label: `${g.game_name} ($${g.price})` }))]} />
+          <Field label="Select Device" value={addGameForm.device_number} onChange={v => setAddGameForm({ ...addGameForm, device_number: v })} options={addDeviceOptions} />
+          <Field label="Number of Games" type="number" value={addGameForm.games_count} onChange={v => setAddGameForm({ ...addGameForm, games_count: v })} placeholder="e.g. 3" />
+          {selectedAddGame && (
+            <div style={{ padding: '10px 14px', background: `${C.green}10`, borderRadius: 8, fontSize: 13, color: C.green }}>
+              Adding: <strong>{addGameForm.games_count} games</strong> × <strong>${selectedAddGame.price}</strong> = <strong>${Number(addGameForm.games_count || 0) * Number(selectedAddGame.price)}</strong>
+              <br />New total: <strong>${Number(addGameModal.total_amount) + (Number(addGameForm.games_count || 0) * Number(selectedAddGame.price))}</strong>
+            </div>
+          )}
         </Modal>
       )}
     </div>
