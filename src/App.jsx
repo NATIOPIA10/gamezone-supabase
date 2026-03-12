@@ -5,7 +5,7 @@ import { AuthProvider, useAuth, RequireAuth } from './context/AuthContext';
 import { signUp, resetPassword, updatePassword } from './lib/supabase';
 import * as db from './lib/supabase';
 import {
-  useZones, useOwners, usePlayers, useStaff,
+useZones, useZone, useOwners, usePlayers, useStaff,
   useSessions, usePayments, useNotifications,
   usePlatformStats, useZoneAnalytics, useSubscriptionPlans,
   useActiveSubscription, useRevenueByMonth, useMutation,
