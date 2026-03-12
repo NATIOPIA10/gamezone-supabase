@@ -685,18 +685,28 @@ function SAReports() {
 function NotificationsPage({ zoneId = null }) {
   const { profile } = useAuth();
   const { data: notifications, loading, refetch } = useNotifications(zoneId);
+  const { data: zones } = useZones();
   const [modal, setModal] = useState(false);
-  const [form, setForm] = useState({ title: '', message: '', type: 'info' });
+  const [form, setForm] = useState({ title: '', message: '', type: 'info', target: 'all', target_zone_id: '' });
   const [sending, setSending] = useState(false);
 
-  const send = async () => {
+ const send = async () => {
     if (!form.title || !form.message) return;
     setSending(true);
     try {
-      await db.sendNotification({ ...form, sent_by: profile.id, target_zone_id: zoneId || null });
+      const targetZone = profile?.role === 'owner' ? profile?.zone_id : (form.target === 'zone' ? form.target_zone_id : null);
+      const targetUser = profile?.role === 'owner' ? null : null;
+      await db.sendNotification({ 
+        title: form.title, 
+        message: form.message, 
+        type: form.type, 
+        sent_by: profile.id, 
+        target_zone_id: targetZone,
+        target_user_id: targetUser,
+      });
       await refetch();
       setModal(false);
-      setForm({ title: '', message: '', type: 'info' });
+      setForm({ title: '', message: '', type: 'info', target: 'all', target_zone_id: '' });
     } finally { setSending(false); }
   };
 
@@ -743,6 +753,19 @@ function NotificationsPage({ zoneId = null }) {
           <Field label="Title" value={form.title} onChange={v => setForm({ ...form, title: v })} required />
           <Field label="Message" type="textarea" value={form.message} onChange={v => setForm({ ...form, message: v })} required />
           <Field label="Type" value={form.type} onChange={v => setForm({ ...form, type: v })} options={[{ value: 'info', label: 'Info' }, { value: 'warning', label: 'Warning' }, { value: 'success', label: 'Success' }, { value: 'error', label: 'Error' }]} />
+          {profile?.role === 'superadmin' && (
+            <Field label="Send To" value={form.target} onChange={v => setForm({ ...form, target: v, target_zone_id: '' })}
+              options={[{ value: 'all', label: '📢 All Owners & Staff' }, { value: 'zone', label: '🏢 Specific Zone' }]} />
+          )}
+          {profile?.role === 'superadmin' && form.target === 'zone' && (
+            <Field label="Select Zone" value={form.target_zone_id} onChange={v => setForm({ ...form, target_zone_id: v })}
+              options={[{ value: '', label: '— Select zone —' }, ...(zones || []).map(z => ({ value: z.id, label: z.name }))]} />
+          )}
+          {profile?.role === 'owner' && (
+            <div style={{ padding: '10px 14px', background: `${C.accent}10`, borderRadius: 8, fontSize: 13, color: C.muted }}>
+              📨 This message will be sent to the <strong style={{ color: C.accent }}>Super Admin</strong>.
+            </div>
+          )}
         </Modal>
       )}
     </div>
@@ -1102,12 +1125,14 @@ function OwnerSubscription() {
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       }, { onConflict: 'zone_id' });
       const { data: zoneInfo } = await supabase.from('game_zones').select('name').eq('id', profile?.zone_id).single();
+      const { data: superadmin } = await supabase.from('profiles').select('id').eq('role', 'superadmin').single();
       await supabase.from('notifications').insert({
         title: 'Subscription Upgrade Request',
-        message: `Zone "${zoneInfo?.name || profile?.zone_id}" has requested an upgrade to ${selectedPlan.name} plan.`,
+        message: `Zone "${zoneInfo?.name}" has requested an upgrade to ${selectedPlan.name} plan. Please review and activate.`,
         type: 'info',
         sent_by: profile?.id,
-        target_zone_id: null,
+        target_zone_id: profile?.zone_id,
+        target_user_id: superadmin?.id || null,
       });
       setMsg(`Upgrade to ${selectedPlan.name} requested! Admin will activate it shortly.`);
       setUpgradeModal(false);
