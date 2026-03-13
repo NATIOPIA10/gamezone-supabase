@@ -1135,43 +1135,174 @@ function OwnerEarnings() {
   const { profile } = useAuth();
   const { data: payments, loading } = usePayments(profile?.zone_id);
   const { data: revenue } = useRevenueByMonth(profile?.zone_id);
+  const { data: sessions } = useSessions(profile?.zone_id);
+  const { data: games } = useZoneGames(profile?.zone_id);
+  const [period, setPeriod] = useState('all');
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const now = new Date();
+  const filterPayments = (payments || []).filter(p => {
+    if (period === 'today') return new Date(p.created_at).toDateString() === now.toDateString();
+    if (period === 'week') return new Date(p.created_at) >= new Date(now - 7 * 86400000);
+    if (period === 'month') return new Date(p.created_at).getMonth() === now.getMonth() && new Date(p.created_at).getFullYear() === now.getFullYear();
+    return true;
+  });
+
+  const total = filterPayments.reduce((s, p) => s + Number(p.amount), 0);
+  const totalSessions = (sessions || []).length;
+  const activeSessions = (sessions || []).filter(s => s.status === 'active').length;
+  const avgSession = filterPayments.length ? (total / filterPayments.length).toFixed(2) : 0;
+
+  const byMethod = filterPayments.reduce((acc, p) => { acc[p.method] = (acc[p.method] || 0) + Number(p.amount); return acc; }, {});
+  const byGame = filterPayments.reduce((acc, p) => {
+    const name = p.sessions?.games?.game_name || 'Unknown';
+    acc[name] = (acc[name] || 0) + Number(p.amount);
+    return acc;
+  }, {});
 
   const chartData = (revenue || []).slice(0, 6).reverse().map(r => ({ label: new Date(r.month).toLocaleString('default', { month: 'short' }), value: Number(r.revenue) }));
-  const total = (payments || []).reduce((s, p) => s + Number(p.amount), 0);
+
+  const methodIcons = { cash: '💵', card: '💳', mobile: '📱' };
+  const methodColors = { cash: C.green, card: C.accent, mobile: C.purple };
 
   if (loading) return <Spinner />;
 
+  const tabs = ['overview', 'payments', 'games'];
+
   return (
     <div>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Earnings</div>
-      <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Track your zone revenue and payments.</div>
-      <div style={{ ...card, padding: 20, marginBottom: 22, display: 'flex', alignItems: 'center', gap: 16 }}>
-        <div style={{ fontSize: 32 }}>💰</div>
-        <div>
-          <div style={{ fontSize: 13, color: C.muted }}>Total Revenue</div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: C.green }}>{fmt$(total)}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>💰 Earnings & Reports</div>
+      <div style={{ color: C.muted, fontSize: 13, marginBottom: 20 }}>Track your zone revenue, sessions and payment breakdown.</div>
+
+      {/* Period Filter */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 22, flexWrap: 'wrap' }}>
+        {[['all', 'All Time'], ['today', 'Today'], ['week', 'This Week'], ['month', 'This Month']].map(([v, l]) => (
+          <button key={v} onClick={() => setPeriod(v)} style={{ ...btnS(period === v ? 'primary' : 'outline', true), borderRadius: 20 }}>{l}</button>
+        ))}
+      </div>
+
+      {/* Stats Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 22 }}>
+        <div style={{ ...card, padding: 18, borderLeft: `3px solid ${C.green}` }}>
+          <div style={{ fontSize: 11, color: C.dim, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Total Revenue</div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: C.green }}>{fmt$(total)}</div>
+          <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{filterPayments.length} payments</div>
+        </div>
+        <div style={{ ...card, padding: 18, borderLeft: `3px solid ${C.accent}` }}>
+          <div style={{ fontSize: 11, color: C.dim, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Avg Per Payment</div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: C.accent }}>{fmt$(avgSession)}</div>
+          <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>per transaction</div>
+        </div>
+        <div style={{ ...card, padding: 18, borderLeft: `3px solid ${C.purple}` }}>
+          <div style={{ fontSize: 11, color: C.dim, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Total Sessions</div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: C.purple }}>{totalSessions}</div>
+          <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{activeSessions} active now</div>
+        </div>
+        <div style={{ ...card, padding: 18, borderLeft: `3px solid ${C.yellow}` }}>
+          <div style={{ fontSize: 11, color: C.dim, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Payment Methods</div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: C.yellow }}>{Object.keys(byMethod).length || 0}</div>
+          <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>methods used</div>
         </div>
       </div>
-      <div style={{ ...card, padding: 20, marginBottom: 22 }}>
-        <div style={{ fontWeight: 700, marginBottom: 14 }}>Monthly Revenue</div>
-        <MiniChart data={chartData} />
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 18, borderBottom: `1px solid ${C.border}`, paddingBottom: 0 }}>
+        {tabs.map(t => (
+          <button key={t} onClick={() => setActiveTab(t)} style={{ background: 'none', border: 'none', color: activeTab === t ? C.accent : C.muted, fontWeight: activeTab === t ? 700 : 400, fontSize: 13, cursor: 'pointer', padding: '8px 16px', borderBottom: activeTab === t ? `2px solid ${C.accent}` : '2px solid transparent', textTransform: 'capitalize', transition: 'all 0.15s' }}>{t}</button>
+        ))}
       </div>
-      <div style={{ ...card, padding: 20 }}>
-        <div style={{ fontWeight: 700, marginBottom: 14 }}>Recent Payments</div>
-<div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Player','Amount','Method','Date'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
-          <tbody>
-            {(payments || []).slice(0, 20).map(p => (
-              <tr key={p.id}>
-                <td style={td}>{p.players?.name || '—'}</td>
-                <td style={{ ...td, color: C.green, fontWeight: 700 }}>{fmt$(p.amount)}</td>
-                <td style={td}>{p.method}</td>
-                <td style={{ ...td, color: C.muted }}>{fmtDate(p.created_at)}</td>
-              </tr>
-            ))}
-            {!payments?.length && <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No payments yet.</td></tr>}
-          </tbody>
-        </table></div>
-      </div>
+
+      {/* Overview Tab */}
+      {activeTab === 'overview' && (
+        <div>
+          <div style={{ ...card, padding: 20, marginBottom: 18 }}>
+            <div style={{ fontWeight: 700, marginBottom: 14 }}>📈 Monthly Revenue</div>
+            <MiniChart data={chartData} />
+          </div>
+          <div style={{ ...card, padding: 20, marginBottom: 18 }}>
+            <div style={{ fontWeight: 700, marginBottom: 14 }}>💳 Revenue by Payment Method</div>
+            {Object.entries(byMethod).length === 0 && <div style={{ color: C.dim, fontSize: 13 }}>No payments yet.</div>}
+            {Object.entries(byMethod).map(([method, amount]) => {
+              const pct = total ? Math.round((amount / total) * 100) : 0;
+              return (
+                <div key={method} style={{ marginBottom: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span style={{ fontSize: 13 }}>{methodIcons[method] || '💰'} {method}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: methodColors[method] || C.green }}>{fmt$(amount)} ({pct}%)</span>
+                  </div>
+                  <div style={{ height: 6, background: C.border, borderRadius: 3 }}>
+                    <div style={{ height: 6, width: `${pct}%`, background: methodColors[method] || C.green, borderRadius: 3, transition: 'width 0.5s' }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ ...card, padding: 20 }}>
+            <div style={{ fontWeight: 700, marginBottom: 14 }}>🕹️ Revenue by Game</div>
+            {Object.entries(byGame).length === 0 && <div style={{ color: C.dim, fontSize: 13 }}>No data yet.</div>}
+            {Object.entries(byGame).sort((a, b) => b[1] - a[1]).map(([game, amount]) => {
+              const pct = total ? Math.round((amount / total) * 100) : 0;
+              return (
+                <div key={game} style={{ marginBottom: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span style={{ fontSize: 13 }}>{game}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: C.accent }}>{fmt$(amount)} ({pct}%)</span>
+                  </div>
+                  <div style={{ height: 6, background: C.border, borderRadius: 3 }}>
+                    <div style={{ height: 6, width: `${pct}%`, background: C.accent, borderRadius: 3, transition: 'width 0.5s' }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Payments Tab */}
+      {activeTab === 'payments' && (
+        <div style={{ ...card, overflow: 'hidden' }}>
+          <div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', minWidth: 500, borderCollapse: 'collapse' }}>
+              <thead><tr>{['Player', 'Amount', 'Method', 'Date'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+              <tbody>
+                {filterPayments.slice(0, 50).map(p => (
+                  <tr key={p.id}>
+                    <td style={td}>{p.players?.name || '—'}</td>
+                    <td style={{ ...td, color: C.green, fontWeight: 700 }}>{fmt$(p.amount)}</td>
+                    <td style={td}><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: `${methodColors[p.method] || C.green}18`, color: methodColors[p.method] || C.green }}>{methodIcons[p.method] || '💰'} {p.method}</span></td>
+                    <td style={{ ...td, color: C.muted }}>{fmtDate(p.created_at)} {fmtTime(p.created_at)}</td>
+                  </tr>
+                ))}
+                {!filterPayments.length && <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No payments found.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Games Tab */}
+      {activeTab === 'games' && (
+        <div style={{ ...card, overflow: 'hidden' }}>
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${C.border}`, fontWeight: 700 }}>🕹️ Games Performance</div>
+          <div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', minWidth: 500, borderCollapse: 'collapse' }}>
+              <thead><tr>{['Game', 'Type', 'Price', 'Devices', 'Revenue'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+              <tbody>
+                {(games || []).map(g => (
+                  <tr key={g.id}>
+                    <td style={{ ...td, fontWeight: 600 }}>{g.game_name}</td>
+                    <td style={td}><span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: g.game_type === 'Jotoni' ? `${C.purple}20` : `${C.accent}20`, color: g.game_type === 'Jotoni' ? C.purple : C.accent }}>{g.game_type}</span></td>
+                    <td style={{ ...td, color: C.green }}>{fmt$(g.price)}</td>
+                    <td style={td}>{g.devices}</td>
+                    <td style={{ ...td, color: C.green, fontWeight: 700 }}>{fmt$(byGame[g.game_name] || 0)}</td>
+                  </tr>
+                ))}
+                {!games?.length && <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No games found.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
