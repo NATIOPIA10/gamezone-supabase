@@ -16,7 +16,7 @@ export function AuthProvider({ children }) {
     // Hard timeout — never stuck longer than 4 seconds
     const hardTimeout = setTimeout(() => {
       if (mounted) setLoading(false);
-    }, 4000);
+    }, 2000);
 
     async function loadSession() {
       try {
@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*, game_zones(*)')
+        .select('*')
         .eq('id', userId)
         .single();
 
