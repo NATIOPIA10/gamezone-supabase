@@ -128,7 +128,7 @@ export async function createPlayer(playerData) {
 }
 
 export async function getActiveSessions(zoneId) {
-  const { data, error } = await supabase.from('sessions').select('*, players(name, email)').eq('zone_id', zoneId).eq('status', 'active').order('started_at', { ascending: false });
+  const { data, error } = await supabase.from('sessions').select('*, games(game_name, price)').eq('business_id', zoneId).eq('status', 'active').order('created_at', { ascending: false });
   if (error) throw error;
   return data;
 }
@@ -154,7 +154,7 @@ export async function createPayment(paymentData) {
 }
 
 export async function getPaymentsByZone(zoneId, limit = 50) {
-  let query = supabase.from('payments').select('*, players(name), sessions(*, games(game_name, price))').order('created_at', { ascending: false }).limit(limit);
+  let query = supabase.from('payments').select('*, players(name), sessions(id, game_id, games(game_name, price))').order('created_at', { ascending: false }).limit(limit);
   if (zoneId) query = query.eq('zone_id', zoneId);
   const { data, error } = await query;
   if (error) throw error;
