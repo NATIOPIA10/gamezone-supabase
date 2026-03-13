@@ -420,6 +420,7 @@ function Layout({ page, setPage, children }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div onClick={() => setPage('notifications')} style={{ width: 36, height: 36, borderRadius: 10, background: C.surface, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16 }}>🔔</div>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg, ${C.accent}, ${C.purple})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: '#000', cursor: 'pointer' }}>{initials(profile?.name)}</div>
+            {isMobile && isOwnerOrStaff && <div onClick={logout} style={{ width: 36, height: 36, borderRadius: 10, background: `${C.red}18`, border: `1px solid ${C.red}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16 }}>⏏</div>}
           </div>
         </div>
         <div style={{ padding: isMobile ? '16px 14px' : '26px' }}>{children}</div>
