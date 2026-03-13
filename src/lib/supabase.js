@@ -154,7 +154,7 @@ export async function createPayment(paymentData) {
 }
 
 export async function getPaymentsByZone(zoneId, limit = 50) {
-  let query = supabase.from('payments').select('*, players(name)').order('created_at', { ascending: false }).limit(limit);
+  let query = supabase.from('payments').select('*, players(name), sessions(*, games(game_name, price))').order('created_at', { ascending: false }).limit(limit);
   if (zoneId) query = query.eq('zone_id', zoneId);
   const { data, error } = await query;
   if (error) throw error;
