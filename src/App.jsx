@@ -407,7 +407,7 @@ function Layout({ page, setPage, children }) {
      {/* Main */}
       <div style={{ marginLeft: isMobile ? 0 : 230, flex: 1, paddingBottom: isMobile && isOwnerOrStaff ? 80 : 20, transition: 'margin-left 0.3s ease', minHeight: '100vh' }}>
         {/* Topbar */}
-        <div style={{ background: scrolled ? `rgba(15,17,26,0.95)` : C.surface, backdropFilter: scrolled ? 'blur(20px)' : 'none', WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'none', borderBottom: `1px solid ${scrolled ? C.border : C.border}`, padding: isMobile ? '12px 16px' : '14px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50, transition: 'all 0.3s' }}>
+        <div style={{ background: scrolled ? `rgba(15,17,26,0.95)` : C.surface, backdropFilter: scrolled ? 'blur(20px)' : 'none', WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'none', borderBottom: `1px solid ${scrolled ? C.border : C.border}`, padding: isMobile ? '10px 14px' : '14px 26px',display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50, transition: 'all 0.3s' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {(!isOwnerOrStaff || !isMobile) && (
               <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ width: 36, height: 36, borderRadius: 10, background: C.surface, border: `1px solid ${C.border}`, color: C.text, fontSize: 16, cursor: 'pointer', display: isMobile ? 'flex' : 'none', alignItems: 'center', justifyContent: 'center' }}>☰</button>
@@ -505,7 +505,7 @@ function SAZones() {
             <input style={{ ...inp, width: 220 }} placeholder="🔍 Search zones…" value={search} onChange={e => setSearch(e.target.value)} />
             <button style={btnS('primary')} onClick={openNew}>+ New Zone</button>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead><tr>{['Zone', 'Location', 'Stations', 'Plan', 'Status', 'Created', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(z => (
@@ -527,7 +527,7 @@ function SAZones() {
               ))}
               {!filtered.length && <tr><td colSpan={7} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No zones found.</td></tr>}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
 
@@ -586,7 +586,7 @@ const save = async () => {
         <div style={{ padding: '14px 18px', borderBottom: `1px solid ${C.border}` }}>
           <input style={{ ...inp, width: 220 }} placeholder="🔍 Search owners…" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{['Owner', 'Email', 'Zone', 'Status', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(o => (
@@ -605,7 +605,7 @@ const save = async () => {
             ))}
             {!filtered.length && <tr><td colSpan={6} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No owners yet.</td></tr>}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
      {modal && (
@@ -636,7 +636,7 @@ function SAPlayers() {
           <input style={{ ...inp, width: 220 }} placeholder="🔍 Search players…" value={search} onChange={e => setSearch(e.target.value)} />
           <span style={{ color: C.muted, fontSize: 13 }}>{filtered.length} players</span>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{['Player', 'Email', 'Zone', 'Sessions', 'Spent', 'Last Seen', 'Status'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(p => (
@@ -652,7 +652,7 @@ function SAPlayers() {
             ))}
             {!filtered.length && <tr><td colSpan={7} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No players yet.</td></tr>}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );
@@ -782,7 +782,7 @@ function SAReports() {
       </div>
       <div style={{ ...card, overflow: 'hidden' }}>
         <div style={{ padding: '14px 18px', borderBottom: `1px solid ${C.border}` }}><div style={{ fontWeight: 700, fontSize: 15 }}>Zone Performance</div></div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{['Zone', 'Revenue', 'Players', 'Sessions', 'Active Sessions', 'Status'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {(analytics || []).map(z => (
@@ -797,7 +797,7 @@ function SAReports() {
             ))}
             {!analytics?.length && <tr><td colSpan={6} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No analytics data yet.</td></tr>}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );
@@ -934,7 +934,7 @@ function SAAdmins() {
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Admin Management</div>
       <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>To add an admin: have them register, then update their role in the profiles table.</div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{['Admin', 'Email', 'Role', 'Status', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {admins.map(a => (
@@ -949,7 +949,7 @@ function SAAdmins() {
             ))}
             {!admins.length && <tr><td colSpan={6} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No admins found.</td></tr>}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );
@@ -1072,7 +1072,7 @@ function OwnerStaff() {
         </Modal>
       )}
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{['Name', 'Email', 'Status', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {(staff || []).map(s => (
@@ -1086,7 +1086,7 @@ function OwnerStaff() {
             ))}
             {!staff?.length && <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No staff assigned yet.</td></tr>}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );
@@ -1119,7 +1119,7 @@ function OwnerEarnings() {
       </div>
       <div style={{ ...card, padding: 20 }}>
         <div style={{ fontWeight: 700, marginBottom: 14 }}>Recent Payments</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{['Player','Amount','Method','Date'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {(payments || []).slice(0, 20).map(p => (
@@ -1132,7 +1132,7 @@ function OwnerEarnings() {
             ))}
             {!payments?.length && <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No payments yet.</td></tr>}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );
@@ -1692,7 +1692,7 @@ function StaffPayments() {
     <div>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 22 }}>Payments</div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{['Player', 'Amount', 'Method', 'Date & Time'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {(payments || []).map(p => (
@@ -1705,7 +1705,7 @@ function StaffPayments() {
             ))}
             {!payments?.length && <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No payments recorded yet.</td></tr>}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );
@@ -1733,7 +1733,7 @@ function PlayersList({ zoneId }) {
     <div>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 22 }}>Players</div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{['Name', 'Email', 'Sessions', 'Spent', 'Status'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {(players || []).map(p => (
@@ -1747,7 +1747,7 @@ function PlayersList({ zoneId }) {
             ))}
             {!players?.length && <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No players yet.</td></tr>}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   );
