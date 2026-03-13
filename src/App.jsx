@@ -36,8 +36,8 @@ const btnS = (v = 'primary', sm) => ({
                         { background: 'transparent', color: C.muted, border: `1px solid ${C.border}` }),
 });
 const card = { background: C.card, border: `1px solid ${C.border}`, borderRadius: 14 };
-const th = { padding: '11px 15px', textAlign: 'left', fontSize: 11, color: C.dim, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, borderBottom: `1px solid ${C.border}`, background: C.surface };
-const td = { padding: '13px 15px', borderBottom: `1px solid ${C.border}22`, fontSize: 13, color: C.text, verticalAlign: 'middle' };
+const th = { padding: '10px 12px', textAlign: 'left', fontSize: 10, color: C.dim, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, borderBottom: `1px solid ${C.border}`, background: C.surface, whiteSpace: 'nowrap' };
+const td = { padding: '10px 12px', borderBottom: `1px solid ${C.border}22`, fontSize: 12, color: C.text, verticalAlign: 'middle', whiteSpace: 'nowrap' };
 
 const badge = (status) => {
   const m = { active: [C.green, `${C.green}18`], inactive: [C.dim, `${C.dim}18`], suspended: [C.red, `${C.red}18`], pending: [C.yellow, `${C.yellow}18`], ended: [C.dim, `${C.dim}18`] };
@@ -505,7 +505,8 @@ function SAZones() {
             <input style={{ ...inp, width: 220 }} placeholder="🔍 Search zones…" value={search} onChange={e => setSearch(e.target.value)} />
             <button style={btnS('primary')} onClick={openNew}>+ New Zone</button>
           </div>
-          <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>
+
             <thead><tr>{['Zone', 'Location', 'Stations', 'Plan', 'Status', 'Created', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
             <tbody>
               {filtered.map(z => (
@@ -586,8 +587,7 @@ const save = async () => {
         <div style={{ padding: '14px 18px', borderBottom: `1px solid ${C.border}` }}>
           <input style={{ ...inp, width: 220 }} placeholder="🔍 Search owners…" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Owner', 'Email', 'Zone', 'Status', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+<div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Owner', 'Email', 'Zone', 'Status', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(o => (
               <tr key={o.id}>
@@ -636,8 +636,7 @@ function SAPlayers() {
           <input style={{ ...inp, width: 220 }} placeholder="🔍 Search players…" value={search} onChange={e => setSearch(e.target.value)} />
           <span style={{ color: C.muted, fontSize: 13 }}>{filtered.length} players</span>
         </div>
-        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Player', 'Email', 'Zone', 'Sessions', 'Spent', 'Last Seen', 'Status'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+<div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Player', 'Email', 'Zone', 'Sessions', 'Spent', 'Last Seen', 'Status'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(p => (
               <tr key={p.id}>
@@ -782,8 +781,7 @@ function SAReports() {
       </div>
       <div style={{ ...card, overflow: 'hidden' }}>
         <div style={{ padding: '14px 18px', borderBottom: `1px solid ${C.border}` }}><div style={{ fontWeight: 700, fontSize: 15 }}>Zone Performance</div></div>
-        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Zone', 'Revenue', 'Players', 'Sessions', 'Active Sessions', 'Status'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+<div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Zone', 'Revenue', 'Players', 'Sessions', 'Active Sessions', 'Status'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {(analytics || []).map(z => (
               <tr key={z.zone_id}>
@@ -934,8 +932,7 @@ function SAAdmins() {
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Admin Management</div>
       <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>To add an admin: have them register, then update their role in the profiles table.</div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Admin', 'Email', 'Role', 'Status', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+<div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Admin', 'Email', 'Role', 'Status', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {admins.map(a => (
               <tr key={a.id}>
@@ -1072,8 +1069,7 @@ function OwnerStaff() {
         </Modal>
       )}
       <div style={{ ...card, overflow: 'hidden' }}>
-        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Name', 'Email', 'Status', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+<div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Name', 'Email', 'Status', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {(staff || []).map(s => (
               <tr key={s.id}>
@@ -1119,8 +1115,7 @@ function OwnerEarnings() {
       </div>
       <div style={{ ...card, padding: 20 }}>
         <div style={{ fontWeight: 700, marginBottom: 14 }}>Recent Payments</div>
-        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Player','Amount','Method','Date'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+<div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Player','Amount','Method','Date'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {(payments || []).slice(0, 20).map(p => (
               <tr key={p.id}>
@@ -1692,8 +1687,7 @@ function StaffPayments() {
     <div>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 22 }}>Payments</div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Player', 'Amount', 'Method', 'Date & Time'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+<div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Player', 'Amount', 'Method', 'Date & Time'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {(payments || []).map(p => (
               <tr key={p.id}>
@@ -1733,8 +1727,7 @@ function PlayersList({ zoneId }) {
     <div>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 22 }}>Players</div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <div className="table-wrap"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Name', 'Email', 'Sessions', 'Spent', 'Status'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+<div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Name', 'Email', 'Sessions', 'Spent', 'Status'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {(players || []).map(p => (
               <tr key={p.id}>
