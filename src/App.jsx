@@ -918,8 +918,31 @@ function NotificationsPage({ zoneId = null }) {
 
 function SAAdmins() {
   const { data: users, loading, refetch } = useAllUsers();
+const [modal, setModal] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState('');
   const admins = (users || []).filter(u => u.role === 'superadmin' || u.role === 'admin');
 
+  const createAdmin = async () => {
+    if (!form.name || !form.email || !form.password) return;
+    setSaving(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: form.email, password: form.password,
+        options: { data: { name: form.name, role: 'admin' } }
+      });
+      if (error) throw error;
+      if (data.user) {
+        await supabase.from('profiles').update({ role: 'admin', status: 'active', name: form.name }).eq('id', data.user.id);
+      }
+      setMsg('Admin created successfully!');
+      setModal(false);
+      setForm({ name: '', email: '', password: '' });
+      refetch();
+    } catch(e) { setMsg('Error: ' + e.message); }
+    finally { setSaving(false); }
+  };
   const toggleStatus = async (u) => {
     await db.updateProfile(u.id, { status: u.status === 'active' ? 'suspended' : 'active' });
     refetch();
@@ -929,8 +952,12 @@ function SAAdmins() {
 
   return (
     <div>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Admin Management</div>
-      <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>To add an admin: have them register, then update their role in the profiles table.</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+        <div style={{ fontSize: 20, fontWeight: 700 }}>Admin Management</div>
+        <button style={btnS('primary')} onClick={() => setModal(true)}>+ Add Admin</button>
+      </div>
+      <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Manage superadmin and admin accounts.</div>
+      {msg && <SuccessMsg msg={msg} />}
       <div style={{ ...card, overflow: 'hidden' }}>
 <div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Admin', 'Email', 'Role', 'Status', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
@@ -948,6 +975,14 @@ function SAAdmins() {
           </tbody>
         </table></div>
       </div>
+    {modal && (
+        <Modal title="Add New Admin" onClose={() => setModal(false)}
+          footer={<><button style={btnS('outline')} onClick={() => setModal(false)}>Cancel</button><button style={btnS('primary')} onClick={createAdmin} disabled={saving}>{saving ? 'Creating…' : 'Create Admin'}</button></>}>
+          <Field label="Full Name" value={form.name} onChange={v => setForm({ ...form, name: v })} required />
+          <Field label="Email" type="email" value={form.email} onChange={v => setForm({ ...form, email: v })} required />
+          <Field label="Password" type="password" value={form.password} onChange={v => setForm({ ...form, password: v })} required />
+        </Modal>
+      )}
     </div>
   );
 }
