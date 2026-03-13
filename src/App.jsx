@@ -367,7 +367,7 @@ function Layout({ page, setPage, children }) {
       )}
 
       {/* Main */}
-<div style={{ marginLeft: isMobile ? 0 : 230, flex: 1, paddingBottom: isMobile && isOwnerOrStaff ? 80 : 0, transition: 'margin-left 0.3s ease' }}><div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+<div style={{ marginLeft: isMobile ? 0 : 230, flex: 1, paddingBottom: isMobile && isOwnerOrStaff ? 80 : 0, transition: 'margin-left 0.3s ease' }}>        <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: '14px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}><div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
 <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: C.text, fontSize: 22, cursor: 'pointer', display: isMobile ? 'block' : 'none' }}>☰</button>  <div style={{ fontSize: 19, fontWeight: 700 }}>{currentLabel}</div>
 </div>          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <span onClick={() => setPage('notifications')} style={{ fontSize: 18, cursor: 'pointer' }}>🔔</span>
