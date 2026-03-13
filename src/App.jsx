@@ -1757,8 +1757,7 @@ function AppPages({ page, setPage }) {
   const ownerPages = { overview: OwnerOverview, games: OwnerGames, staff: OwnerStaff, players: () => <PlayersList zoneId={zoneId} />, sessions: StaffSessions, earnings: OwnerEarnings, subscription: OwnerSubscription, notifications: () => <NotificationsPage zoneId={zoneId} /> };
   const staffPages = { overview: StaffOverview, register: StaffRegisterPlayer, sessions: StaffSessions, payments: StaffPayments };
 
-  const pages = role === 'superadmin' ? saPages : role === 'owner' ? ownerPages : staffPages;
-  const Comp = pages[page] || pages['overview'];
+  const pages = role === 'superadmin' || role === 'admin' ? saPages : role === 'owner' ? ownerPages : staffPages;  const Comp = pages[page] || pages['overview'];
   return Comp ? <Comp /> : null;
 }
 
