@@ -9,7 +9,7 @@ import {
   useZones, useZone, useOwners, usePlayers, useStaff,
   useSessions, usePayments, useNotifications,
   usePlatformStats, useZoneAnalytics, useSubscriptionPlans,
-  useActiveSubscription, useRevenueByMonth, useMutation, useAllUsers,
+  useActiveSubscription, useRevenueByMonth, useMutation, useAllUsers, useGames,
 } from './hooks/useSupabase';
 
 // ─── COLORS ──────────────────────────────────────────────────
