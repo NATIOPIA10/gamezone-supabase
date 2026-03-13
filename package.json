@@ -3,9 +3,12 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+ "main": "electron-main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "electron": "electron .",
+"electron:build": "vite build && electron-builder --win --config.extraMetadata.main=electron-main.cjs",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -13,8 +16,22 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
+  "build": {
+    "appId": "com.gamezone.management",
+    "productName": "GameZone",
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon-512.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.0",
+    "electron": "^41.0.2",
+    "electron-builder": "^26.8.1",
     "vite": "^5.0.0"
   }
 }

@@ -75,11 +75,11 @@ export function AuthProvider({ children }) {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      if (mounted) setProfile(data);
-      return data;
+      if (mounted) setProfile(data || null);
+      return data || null;
     } catch (err) {
       console.error('Profile fetch error:', err);
       if (mounted) setProfile(null);
