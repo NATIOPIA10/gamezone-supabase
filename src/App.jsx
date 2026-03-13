@@ -1396,14 +1396,16 @@ function OwnerSubscription() {
 function StaffOverview() {
   const { profile } = useAuth();
   const { data: sessions } = useSessions(profile?.zone_id);
+  const { data: zone } = useZone(profile?.zone_id);
   const active = (sessions || []).filter(s => s.status === 'active').length;
   return (
     <div>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 22 }}>Staff Dashboard</div>
+      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Staff Dashboard</div>
+      <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Welcome back, <strong>{profile?.name}</strong> — {zone?.name || '—'}</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
         <StatCard label="Active Sessions" value={active} color={C.accent} />
         <StatCard label="Total Sessions Today" value={sessions?.length || 0} color={C.green} />
-        <StatCard label="Zone" value={profile?.game_zones?.name || '—'} color={C.purple} />
+        <StatCard label="Zone" value={zone?.name || '—'} color={C.purple} />
       </div>
     </div>
   );
