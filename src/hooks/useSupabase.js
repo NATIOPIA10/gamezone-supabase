@@ -36,7 +36,7 @@ export const useZoneAnalytics = (zoneId = null) => useFetch(() => db.getZoneAnal
 export const useSubscriptionPlans = () => useFetch(() => db.getSubscriptionPlans(), []);
 export const useActiveSubscription = (zoneId) => useFetch(() => zoneId ? db.getActiveSubscription(zoneId) : Promise.resolve(null), [zoneId]);
 export const useRevenueByMonth = (zoneId = null) => useFetch(() => db.getRevenueByMonth(zoneId), [zoneId]);
-
+export const useGames = (zoneId) => useFetch(() => zoneId ? db.getGamesByZone(zoneId) : Promise.resolve([]), [zoneId]);
 export function useSessions(zoneId) {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);

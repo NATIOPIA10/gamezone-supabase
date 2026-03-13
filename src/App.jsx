@@ -1136,7 +1136,7 @@ function OwnerEarnings() {
   const { data: payments, loading } = usePayments(profile?.zone_id);
   const { data: revenue } = useRevenueByMonth(profile?.zone_id);
   const { data: sessions } = useSessions(profile?.zone_id);
-  const { data: games } = useZoneGames(profile?.zone_id);
+  const { data: games } = useGames(profile?.zone_id);
   const [period, setPeriod] = useState('all');
   const [activeTab, setActiveTab] = useState('overview');
 
