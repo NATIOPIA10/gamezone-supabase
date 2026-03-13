@@ -934,9 +934,16 @@ const [modal, setModal] = useState(false);
       });
       if (error) throw error;
       if (data.user) {
-        await supabase.from('profiles').update({ role: 'admin', status: 'active', name: form.name }).eq('id', data.user.id);
+        const { error: profileError } = await supabase.from('profiles').upsert({
+          id: data.user.id,
+          email: form.email,
+          name: form.name,
+          role: 'admin',
+          status: 'active',
+        }, { onConflict: 'id' });
+        if (profileError) throw profileError;
       }
-      setMsg('Admin created successfully!');
+      setMsg('Admin created! They need to verify their email before logging in.');
       setModal(false);
       setForm({ name: '', email: '', password: '' });
       refetch();
