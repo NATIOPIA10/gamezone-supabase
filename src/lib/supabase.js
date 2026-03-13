@@ -96,7 +96,7 @@ export async function getStaffByZone(zoneId) {
 }
 
 export async function getAllUsers() {
-  const { data, error } = await supabase.from('profiles').select('*, game_zones(name)').order('created_at', { ascending: false });
+  const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
   if (error) throw error;
   return data;
 }
