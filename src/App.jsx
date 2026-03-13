@@ -268,6 +268,13 @@ function AuthPage() {
 function Layout({ page, setPage, children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -352,29 +359,70 @@ function Layout({ page, setPage, children }) {
 
    {/* Mobile bottom nav for owner/staff */}
      {isMobile && isOwnerOrStaff && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: C.surface, borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '8px 0', zIndex: 300 }}>
-          {items.map(it => (
-            <div key={it.key} onClick={() => setPage(it.key)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer', padding: '4px 8px', borderRadius: 8, background: page === it.key ? `${C.accent}18` : 'transparent', minWidth: 50 }}>
-              <span style={{ fontSize: 20 }}>{it.icon}</span>
-              <span style={{ fontSize: 9, color: page === it.key ? C.accent : C.muted, fontWeight: page === it.key ? 700 : 400, textAlign: 'center', lineHeight: 1.2 }}>{it.label}</span>
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: `rgba(15,17,26,0.97)`, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '6px 0 calc(6px + env(safe-area-inset-bottom))', zIndex: 300 }}>
+          {items.slice(0, 5).map(it => {
+            const active = page === it.key;
+            return (
+              <div key={it.key} onClick={() => setPage(it.key)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, cursor: 'pointer', padding: '6px 10px', borderRadius: 12, flex: 1, position: 'relative' }}>
+                {active && <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 32, height: 3, background: C.accent, borderRadius: '0 0 4px 4px' }} />}
+                <div style={{ width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? `${C.accent}20` : 'transparent', transition: 'all 0.2s', fontSize: 18 }}>{it.icon}</div>
+                <span style={{ fontSize: 9, color: active ? C.accent : C.dim, fontWeight: active ? 700 : 400, textAlign: 'center', letterSpacing: 0.3 }}>{it.label}</span>
+              </div>
+            );
+          })}
+          {items.length > 5 && (
+            <div onClick={() => setSidebarOpen(!sidebarOpen)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, cursor: 'pointer', padding: '6px 10px', flex: 1 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: sidebarOpen ? `${C.accent}20` : 'transparent', fontSize: 18 }}>•••</div>
+              <span style={{ fontSize: 9, color: C.dim, fontWeight: 400 }}>More</span>
             </div>
-          ))}
-          <div onClick={logout} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer', padding: '4px 8px', borderRadius: 8, minWidth: 50 }}>
-            <span style={{ fontSize: 20 }}>⏏</span>
-            <span style={{ fontSize: 9, color: C.red, fontWeight: 600, textAlign: 'center', lineHeight: 1.2 }}>Logout</span>
-          </div>
+          )}
         </div>
       )}
 
-      {/* Main */}
-<div style={{ marginLeft: isMobile ? 0 : 230, flex: 1, paddingBottom: isMobile && isOwnerOrStaff ? 80 : 0, transition: 'margin-left 0.3s ease' }}>        <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: '14px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}><div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-<button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: C.text, fontSize: 22, cursor: 'pointer', display: isMobile ? 'block' : 'none' }}>☰</button>  <div style={{ fontSize: 19, fontWeight: 700 }}>{currentLabel}</div>
-</div>          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <span onClick={() => setPage('notifications')} style={{ fontSize: 18, cursor: 'pointer' }}>🔔</span>
-            <div style={{ width: 34, height: 34, borderRadius: '50%', background: `linear-gradient(135deg, ${C.accent}, ${C.purple})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: '#000' }}>{initials(profile?.name)}</div>
+      {/* More menu drawer for owner/staff on mobile */}
+      {isMobile && isOwnerOrStaff && sidebarOpen && (
+        <>
+          <div onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 400 }} />
+          <div style={{ position: 'fixed', bottom: 'calc(70px + env(safe-area-inset-bottom))', left: 12, right: 12, background: C.surface, borderRadius: 20, zIndex: 500, padding: 16, border: `1px solid ${C.border}`, boxShadow: '0 -8px 40px rgba(0,0,0,0.5)' }}>
+            <div style={{ fontSize: 11, color: C.dim, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10, paddingLeft: 4 }}>More Options</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+              {items.slice(5).map(it => {
+                const active = page === it.key;
+                return (
+                  <div key={it.key} onClick={() => { setPage(it.key); setSidebarOpen(false); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 4px', borderRadius: 12, background: active ? `${C.accent}18` : C.bg, cursor: 'pointer', border: active ? `1px solid ${C.accent}40` : `1px solid ${C.border}` }}>
+                    <span style={{ fontSize: 20 }}>{it.icon}</span>
+                    <span style={{ fontSize: 9, color: active ? C.accent : C.muted, textAlign: 'center', fontWeight: active ? 700 : 400 }}>{it.label}</span>
+                  </div>
+                );
+              })}
+              <div onClick={() => { logout(); setSidebarOpen(false); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 4px', borderRadius: 12, background: `${C.red}12`, cursor: 'pointer', border: `1px solid ${C.red}30` }}>
+                <span style={{ fontSize: 20 }}>⏏</span>
+                <span style={{ fontSize: 9, color: C.red, textAlign: 'center', fontWeight: 600 }}>Logout</span>
+              </div>
+            </div>
+          </div>
+        </>
+      )} 
+
+     {/* Main */}
+      <div style={{ marginLeft: isMobile ? 0 : 230, flex: 1, paddingBottom: isMobile && isOwnerOrStaff ? 80 : 20, transition: 'margin-left 0.3s ease', minHeight: '100vh' }}>
+        {/* Topbar */}
+        <div style={{ background: scrolled ? `rgba(15,17,26,0.95)` : C.surface, backdropFilter: scrolled ? 'blur(20px)' : 'none', WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'none', borderBottom: `1px solid ${scrolled ? C.border : C.border}`, padding: isMobile ? '12px 16px' : '14px 26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50, transition: 'all 0.3s' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {(!isOwnerOrStaff || !isMobile) && (
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ width: 36, height: 36, borderRadius: 10, background: C.surface, border: `1px solid ${C.border}`, color: C.text, fontSize: 16, cursor: 'pointer', display: isMobile ? 'flex' : 'none', alignItems: 'center', justifyContent: 'center' }}>☰</button>
+            )}
+            {isMobile && (
+              <div style={{ width: 28, height: 28, background: `linear-gradient(135deg, ${C.accent}, ${C.purple})`, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🎮</div>
+            )}
+            <div style={{ fontSize: isMobile ? 16 : 19, fontWeight: 700 }}>{currentLabel}</div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div onClick={() => setPage('notifications')} style={{ width: 36, height: 36, borderRadius: 10, background: C.surface, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16 }}>🔔</div>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg, ${C.accent}, ${C.purple})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: '#000', cursor: 'pointer' }}>{initials(profile?.name)}</div>
           </div>
         </div>
-        <div style={{ padding: 26 }}>{children}</div>
+        <div style={{ padding: isMobile ? '16px 14px' : '26px' }}>{children}</div>
       </div>
     </div>
   );
