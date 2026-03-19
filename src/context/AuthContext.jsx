@@ -18,16 +18,21 @@ export function AuthProvider({ children }) {
       if (mounted) setLoading(false);
     }, 6000);
 
-    async function loadSession() {
+   async function loadSession() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session && mounted) {
           setUser(session.user);
-          await fetchProfile(session.user.id, mounted);
+          // Set loading false immediately, fetch profile in background
+          clearTimeout(hardTimeout);
+          if (mounted) setLoading(false);
+          fetchProfile(session.user.id, mounted);
+        } else {
+          clearTimeout(hardTimeout);
+          if (mounted) setLoading(false);
         }
       } catch (err) {
         console.error('Session load error:', err);
-      } finally {
         clearTimeout(hardTimeout);
         if (mounted) setLoading(false);
       }
