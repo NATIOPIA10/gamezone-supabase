@@ -1,23 +1,18 @@
 # Fix: New Owners Not Visible/Usable (Pending Status Bug)
 
 ## ✅ Step 1: Create TODO.md [COMPLETED]
+## ✅ Step 2: Update PostgreSQL trigger [COMPLETED - user ran SQL]
+## ✅ Step 3: Update src/lib/supabase.js [COMPLETED]
 
-## ⬜ Step 2: Update supabase_schema.sql
-- Modify handle_new_user() trigger: auto-set status='active' for role='owner'
-
-## ⬜ Step 3: Update src/lib/supabase.js  
-- signUp: explicitly set status: 'active' in metadata
-- signIn: skip pending check OR only for non-owners
-
-## ⬜ Step 4: Update src/App.jsx (SAOwners)
-- Optional: Filter default view to active owners
-- Remove console.log('owners data:', data)
+## ⬜ Step 4: Cleanup src/App.jsx (SAOwners)
+- Remove console.log debug output
+- Add status='active' filter option
 
 ## ⬜ Step 5: Test Registration Flow
-- Register new owner → check Supabase profiles (status='active')
-- Verify visible on superadmin page + can login
+- Register new owner → auto-active in Supabase profiles
+- Verify shows on superadmin owners page + can login immediately
 
-## ⬜ Step 6: Deploy & Complete
-- User runs updated schema in Supabase SQL Editor
-- Test end-to-end → attempt_completion
+## ⬜ Step 6: Complete & Verify
+- npm run dev → test full flow
+- attempt_completion
 

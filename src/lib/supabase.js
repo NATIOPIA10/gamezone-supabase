@@ -19,12 +19,12 @@ export async function signIn(email, password) {
   const { data: profile, error: profileErr } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
   if (profileErr) throw profileErr;
   if (profile.status === 'suspended') { await supabase.auth.signOut(); throw new Error('Your account is currently suspended. Please contact the administrator.'); }
-  if (profile.status === 'pending') { await supabase.auth.signOut(); throw new Error('Your account is pending approval. Please wait for an administrator to activate it.'); }
+  // Removed pending check - owners auto-activated by trigger
   return { user: data.user, profile };
 }
 
 export async function signUp(email, password, name) {
-  const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { name, role: 'owner' } } });
+  const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { name, role: 'owner', status: 'active' } } });
   if (error) throw error;
   return data;
 }
@@ -85,7 +85,7 @@ export async function getAllOwners() {
     console.error('getAllOwners error:', error);
     throw error;
   }
-  console.log('owners data:', data);
+  // Removed debug log
   return data;
 }
 

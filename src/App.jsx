@@ -549,7 +549,7 @@ function SAZones() {
     </div>
   );
 }
-
+$
 function SAOwners() {
   const { data: owners, loading, refetch } = useOwners();
   const { data: zones } = useZones();
@@ -741,7 +741,7 @@ function SASubscriptions() {
           <div key={p.id} style={{ ...card, padding: 22, border: p.name === 'Pro' ? `2px solid ${C.accent}` : `1px solid ${C.border}` }}>
             {p.name === 'Pro' && <div style={{ background: C.accent, textAlign: 'center', padding: 5, fontSize: 10, fontWeight: 700, color: '#000', letterSpacing: 1, margin: '-22px -22px 18px', borderRadius: '12px 12px 0 0' }}>MOST POPULAR</div>}
             <div style={{ fontSize: 20, fontWeight: 800, color: p.name === 'Pro' ? C.accent : p.name === 'Premium' ? C.purple : C.muted, marginBottom: 4 }}>{p.name}</div>
-            <div style={{ fontSize: 32, fontWeight: 900, marginBottom: 4 }}>${p.price_monthly}<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/mo</span></div>
+            <div style={{ fontSize: 32, fontWeight: 900, marginBottom: 4 }}>{p.price_monthly}  Birr<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/mo</span></div>
             <div style={{ fontSize: 12, color: C.muted, marginBottom: 16 }}>{p.max_stations === 999 ? 'Unlimited' : p.max_stations} stations</div>
             {(typeof p.features === 'string' ? JSON.parse(p.features) : p.features || []).map(f => (
               <div key={f} style={{ display: 'flex', gap: 7, marginBottom: 8, fontSize: 12, color: C.muted }}><span style={{ color: C.green }}>✓</span>{f}</div>
@@ -1042,11 +1042,26 @@ function OwnerOverview() {
   const { data: analytics } = useZoneAnalytics(profile?.zone_id);
   const { data: zoneData } = useZone(profile?.zone_id);
   const zone = analytics?.[0];
+
+  if (!profile?.zone_id) {
+    return (
+      <div>
+        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Owner Dashboard</div>
+        <div style={{ ...card, padding: 40, textAlign: 'center', marginTop: 20 }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🏢</div>
+          <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>No Zone Assigned Yet</div>
+          <div style={{ color: C.muted, fontSize: 14 }}>Your account is pending. The admin will assign your game zone shortly.</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Owner Dashboard</div>
-<div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Zone: <strong style={{ color: C.accent }}>{zoneData?.name || profile?.game_zones?.name || '—'}</strong></div>      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
-        <StatCard label="Total Revenue" value={fmt$(zone?.total_revenue)} color={C.accent} />
+      <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Zone: <strong style={{ color: C.accent }}>{zoneData?.name || '—'}</strong></div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
+        <StatCard label="Total Revenue" value={fmt$(zone?.total_revenue || 0)} color={C.accent} />
         <StatCard label="Total Players" value={zone?.total_players || 0} color={C.green} />
         <StatCard label="Sessions" value={zone?.total_sessions || 0} color={C.purple} />
         <StatCard label="Active Now" value={zone?.active_sessions || 0} color={C.yellow} />
@@ -1496,7 +1511,7 @@ function OwnerSubscription() {
         {(plans || []).map(p => (
           <div key={p.id} style={{ ...card, padding: 20, border: `2px solid ${p.id === currentPlan?.id ? C.accent : C.border}`, opacity: p.id === currentPlan?.id ? 0.7 : 1 }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: planColor[p.name] || C.muted, marginBottom: 4 }}>{p.name}</div>
-            <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 12 }}>${p.price_monthly}<span style={{ fontSize: 12, color: C.muted }}>/mo</span></div>
+            <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 12 }}>${p.price_monthly} BIrr<span style={{ fontSize: 12, color: C.muted }}>/mo</span></div>
             {(typeof p.features === 'string' ? JSON.parse(p.features) : p.features || []).map(f => (
               <div key={f} style={{ display: 'flex', gap: 6, marginBottom: 6, fontSize: 12, color: C.muted }}><span style={{ color: C.green }}>✓</span>{f}</div>
             ))}
@@ -1845,7 +1860,7 @@ function StaffSessions() {
           <Field label="Number of Games" type="number" value={addGameForm.games_count} onChange={v => setAddGameForm({ ...addGameForm, games_count: v })} placeholder="e.g. 3" />
           {selectedAddGame && (
             <div style={{ padding: '10px 14px', background: `${C.green}10`, borderRadius: 8, fontSize: 13, color: C.green }}>
-              Adding: <strong>{addGameForm.games_count} games</strong> × <strong>${selectedAddGame.price}</strong> = <strong>${Number(addGameForm.games_count || 0) * Number(selectedAddGame.price)}</strong>
+              Adding: <strong>{addGameForm.games_count} games</strong> × <strong>{selectedAddGame.price} Birr</strong> = <strong>${Number(addGameForm.games_count || 0) * Number(selectedAddGame.price)} </strong>
               <br />New total: <strong>${Number(addGameModal.total_amount) + (Number(addGameForm.games_count || 0) * Number(selectedAddGame.price))}</strong>
             </div>
           )}
@@ -1950,7 +1965,7 @@ export default function App() {
   return (
     <AuthProvider>
       <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", background: C.bg, color: C.text, minHeight: '100vh', fontSize: 14 }}>
-        <style>{`
+        <style>{`$
           * { box-sizing: border-box; margin: 0; padding: 0; }
           input:focus, select:focus, textarea:focus { border-color: #00d4ff !important; box-shadow: 0 0 0 3px #00d4ff18; }
           tr:hover td { background: rgba(255,255,255,0.02); }
