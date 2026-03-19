@@ -67,19 +67,19 @@ export function useSessions(zoneId) {
   return { data: sessions, loading, error, refetch: load };
 }
 
-export function useNotifications(zoneId = null) {
+export function useNotifications(zoneId = null, userId = null) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await db.getNotifications(zoneId);
+      const data = await db.getNotifications(zoneId, userId);
       setNotifications(data || []);
     } finally {
       setLoading(false);
     }
-  }, [zoneId]);
+  }, [zoneId, userId]);
 
   useEffect(() => {
     load();
@@ -87,7 +87,7 @@ export function useNotifications(zoneId = null) {
       setNotifications(prev => [payload.new, ...prev]);
     });
     return () => { supabase.removeChannel(channel); };
-  }, [zoneId, load]);
+  }, [zoneId, userId, load]);
 
   return { data: notifications, loading, refetch: load };
 }

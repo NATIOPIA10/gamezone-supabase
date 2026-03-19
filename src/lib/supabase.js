@@ -169,9 +169,14 @@ export async function getRevenueByMonth(zoneId = null) {
   return data;
 }
 
-export async function getNotifications(zoneId = null) {
-  let query = supabase.from('notifications').select('*, profiles!sent_by(name), notification_reads(user_id)').order('created_at', { ascending: false });
-  if (zoneId) query = query.or(`target_zone_id.eq.${zoneId},target_zone_id.is.null`);
+export async function getNotifications(zoneId = null, userId = null) {
+  let query = supabase.from('notifications').select('*, sender:profiles!sent_by(name), notification_reads(user_id)').order('created_at', { ascending: false });
+  if (zoneId) {
+    query = query.or(`target_zone_id.eq.${zoneId},target_zone_id.is.null`);
+  }
+  if (userId) {
+    query = query.or(`target_user_id.eq.${userId},target_user_id.is.null`);
+  }
   const { data, error } = await query;
   if (error) throw error;
   return data;

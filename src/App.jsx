@@ -852,7 +852,7 @@ function SAReports() {
 
 function NotificationsPage({ zoneId = null }) {
   const { profile } = useAuth();
-  const { data: notifications, loading, refetch } = useNotifications(zoneId);
+  const { data: notifications, loading, refetch } = useNotifications(zoneId, profile?.id);
   const { data: zones } = useZones();
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({ title: '', message: '', type: 'info', target: 'all', target_zone_id: '' });
@@ -906,7 +906,7 @@ function NotificationsPage({ zoneId = null }) {
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, marginBottom: 3 }}>{n.title}</div>
                 <div style={{ color: C.muted, fontSize: 13, marginBottom: 6 }}>{n.message}</div>
-                <div style={{ fontSize: 11, color: C.dim }}>{fmtDate(n.created_at)} {fmtTime(n.created_at)}{n.profiles?.name ? ` · Sent by {n.profiles.name}` : ''}</div>
+                <div style={{ fontSize: 11, color: C.dim }}>{fmtDate(n.created_at)} {fmtTime(n.created_at)}{n.sender?.name ? ` · Sent by ${n.sender.name}` : ''}</div>
               </div>
 <div style={{ display: 'flex', gap: 8, flexDirection: 'column', alignItems: 'flex-end' }}>
                 {!isRead && <button style={btnS('outline', true)} onClick={() => markRead(n.id)}>Mark Read</button>}
