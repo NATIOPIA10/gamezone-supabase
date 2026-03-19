@@ -1760,7 +1760,7 @@ function StaffSessions() {
         </div>
         {selectedGame && (
           <div style={{ marginTop: 8, padding: '10px 14px', background: `${C.accent}10`, borderRadius: 8, fontSize: 13, color: C.accent }}>
-            💡 <strong>{selectedGame.game_name}</strong> — {selectedGame.game_type} — Price: <strong>${selectedGame.price}</strong> per game
+            💡 <strong>{selectedGame.game_name}</strong> — {selectedGame.game_type} — Price: <strong>{selectedGame.price} Birr</strong> per game
           </div>
         )}
         <button style={{ ...btnS('primary'), marginTop: 16, padding: '11px 28px' }} onClick={startSession} disabled={saving}>
@@ -1856,8 +1856,8 @@ function StaffSessions() {
           <Field label="Number of Games" type="number" value={addGameForm.games_count} onChange={v => setAddGameForm({ ...addGameForm, games_count: v })} placeholder="e.g. 3" />
           {selectedAddGame && (
             <div style={{ padding: '10px 14px', background: `${C.green}10`, borderRadius: 8, fontSize: 13, color: C.green }}>
-              Adding: <strong>{addGameForm.games_count} games</strong> × <strong>{selectedAddGame.price} Birr</strong> = <strong>${Number(addGameForm.games_count || 0) * Number(selectedAddGame.price)} </strong>
-              <br />New total: <strong>${Number(addGameModal.total_amount) + (Number(addGameForm.games_count || 0) * Number(selectedAddGame.price))}</strong>
+              Adding: <strong>{addGameForm.games_count} games</strong> × <strong>{selectedAddGame.price} Birr</strong> = <strong>{Number(addGameForm.games_count || 0) * Number(selectedAddGame.price)} Birr</strong>
+              <br />New total: <strong>{Number(addGameModal.total_amount) + (Number(addGameForm.games_count || 0) * Number(selectedAddGame.price))} Birr</strong>
             </div>
           )}
         </Modal>
