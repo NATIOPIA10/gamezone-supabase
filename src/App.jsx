@@ -585,7 +585,7 @@ const save = async () => {
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Owners</div>
       <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>All zone owners — data from Supabase profiles table.</div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <div style={{ padding: '14px 18px', borderBottom: `1px solid {C.border}` }}>
+        <div style={{ padding: '14px 18px', borderBottom: `1px solid ${C.border}` }}>
           <input style={{ ...inp, width: 220 }} placeholder="🔍 Search owners…" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
 <div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Owner', 'Email', 'Zone', 'Status', 'Joined', 'Actions'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
@@ -771,7 +771,7 @@ function SAReports() {
     <div>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 22 }}>Reports & Analytics</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 22 }}>
-        <StatCard label="Total Revenue" value={fmt(totalRevenue)} color={C.accent} />
+        <StatCard label="Total Revenue" value={fmt$(totalRevenue)} color={C.accent} />
         <StatCard label="Total Players" value={totalPlayers} color={C.green} />
         <StatCard label="Active Zones" value={(analytics || []).filter(z => z.status === 'active').length} color={C.purple} />
         <StatCard label="Total Sessions" value={(analytics || []).reduce((s, z) => s + Number(z.total_sessions), 0)} color={C.yellow} />
@@ -781,13 +781,13 @@ function SAReports() {
         {chartData.length ? <BarChart data={chartData} color={C.accent} height={130} /> : <div style={{ color: C.dim, textAlign: 'center', padding: 20 }}>No payment data yet.</div>}
       </div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <div style={{ padding: '14px 18px', borderBottom: `1px solid {C.border}` }}><div style={{ fontWeight: 700, fontSize: 15 }}>Zone Performance</div></div>
+        <div style={{ padding: '14px 18px', borderBottom: `1px solid ${C.border}` }}><div style={{ fontWeight: 700, fontSize: 15 }}>Zone Performance</div></div>
 <div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Zone', 'Revenue', 'Players', 'Sessions', 'Active Sessions', 'Status'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
           <tbody>
             {(analytics || []).map(z => (
               <tr key={z.zone_id}>
                 <td style={td}><span style={{ fontWeight: 600 }}>{z.zone_name}</span></td>
-                <td style={{ ...td, color: C.accent, fontWeight: 700 }}>{fmt(z.total_revenue)}</td>
+                <td style={{ ...td, color: C.accent, fontWeight: 700 }}>{fmt$(z.total_revenue)}</td>
                 <td style={td}>{z.total_players}</td>
                 <td style={td}>{z.total_sessions}</td>
                 <td style={td}><span style={{ color: Number(z.active_sessions) > 0 ? C.green : C.dim, fontWeight: 700 }}>{z.active_sessions}</span></td>
