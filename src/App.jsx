@@ -758,10 +758,13 @@ function SAReports() {
   const { data: analytics, loading } = useZoneAnalytics();
   const { data: revenue } = useRevenueByMonth();
 
-  const chartData = (revenue || []).slice(0, 6).reverse().map(r => ({
-    label: new Date(r.month).toLocaleString('default', { month: 'short' }),
-    value: Number(r.revenue),
-  }));
+   // Combine revenue across all zones by month
+  const revenueByMonth = (revenue || []).reduce((acc, r) => {
+    const label = new Date(r.month).toLocaleString('default', { month: 'short', year: 'numeric' });
+    acc[label] = (acc[label] || 0) + Number(r.revenue);
+    return acc;
+  }, {});
+  const chartData = Object.entries(revenueByMonth).slice(-6).map(([label, value]) => ({ label, value }));
 
   if (loading) return <Spinner />;
 
