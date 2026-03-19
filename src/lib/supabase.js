@@ -169,13 +169,13 @@ export async function getRevenueByMonth(zoneId = null) {
   return data;
 }
 
-export async function getNotifications(zoneId = null, userId = null) {
+export async function getNotifications(zoneId = null, userId = null, role = null) {
   let query = supabase.from('notifications').select('*, sender:profiles!sent_by(name), notification_reads(user_id)').order('created_at', { ascending: false });
-  if (zoneId) {
-    query = query.or(`target_zone_id.eq.${zoneId},target_zone_id.is.null`);
-  }
-  if (userId) {
-    query = query.or(`target_user_id.eq.${userId},target_user_id.is.null`);
+  if (role === 'superadmin' || role === 'admin') {
+    // Superadmin sees all notifications
+  } else if (zoneId) {
+    // Owner/staff only sees their zone notifications
+    query = query.eq('target_zone_id', zoneId);
   }
   const { data, error } = await query;
   if (error) throw error;

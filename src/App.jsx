@@ -852,7 +852,7 @@ function SAReports() {
 
 function NotificationsPage({ zoneId = null }) {
   const { profile } = useAuth();
-  const { data: notifications, loading, refetch } = useNotifications(zoneId, profile?.id);
+  const { data: notifications, loading, refetch } = useNotifications(zoneId, profile?.id, profile?.role);
   const { data: zones } = useZones();
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({ title: '', message: '', type: 'info', target: 'all', target_zone_id: '' });
