@@ -712,7 +712,7 @@ function SASubscriptions() {
       }).eq('id', sub.id);
       await supabase.from('notifications').insert({
         title: 'Subscription Activated!',
-        message: `Your {sub.subscription_plans?.name} plan has been activated by the admin.`,
+        message: `Your ${sub.subscription_plans?.name} plan has been activated by the admin.`,
         type: 'success',
         sent_by: null,
         target_zone_id: sub.zone_id,
@@ -921,7 +921,7 @@ function NotificationsPage({ zoneId = null }) {
                       }).eq('id', sub.id);
                       await supabase.from('notifications').insert({
                         title: 'Subscription Activated!',
-                        message: `Your {sub.subscription_plans?.name} plan has been activated!`,
+                        message: `Your ${sub.subscription_plans?.name} plan has been activated!`,
                         type: 'success',
                         sent_by: null,
                         target_zone_id: n.target_zone_id,
