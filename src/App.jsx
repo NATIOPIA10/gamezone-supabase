@@ -1766,9 +1766,18 @@ function StaffSessions() {
     setGames(data || []);
   };
 
+  const [history, setHistory] = useState([]);
+  const [activeTab, setActiveTab] = useState('active');
+  const [historySearch, setHistorySearch] = useState('');
+
   const loadSessions = async () => {
     const { data } = await supabase.from('sessions').select('*, games(game_name, price, devices, game_type)').eq('business_id', profile?.zone_id).eq('status', 'active').order('created_at', { ascending: false });
     setSessions(data || []);
+  };
+
+  const loadHistory = async () => {
+    const { data } = await supabase.from('sessions').select('*, games(game_name, price)').eq('business_id', profile?.zone_id).eq('status', 'finished').order('end_time', { ascending: false }).limit(100);
+    setHistory(data || []);
   };
 
   useEffect(() => {
@@ -1920,6 +1929,14 @@ function StaffSessions() {
         </button>
       </div>
 
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: `1px solid ${C.border}` }}>
+        {[['active', `▶ Active (${sessions.length})`], ['history', `📋 History (${history.length})`]].map(([t, l]) => (
+          <button key={t} onClick={() => setActiveTab(t)} style={{ background: 'none', border: 'none', color: activeTab === t ? C.accent : C.muted, fontWeight: activeTab === t ? 700 : 400, fontSize: 13, cursor: 'pointer', padding: '8px 16px', borderBottom: activeTab === t ? `2px solid ${C.accent}` : '2px solid transparent' }}>{l}</button>
+        ))}
+      </div>
+
+      {activeTab === 'active' && <>
       {/* Active Sessions */}
       <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 14 }}>
         Active Sessions <span style={{ fontSize: 13, color: C.green, fontWeight: 400 }}>({sessions.length} active)</span>
@@ -1966,6 +1983,41 @@ function StaffSessions() {
           </div>
         ))}
       </div>
+      </>}
+
+      {/* History Tab */}
+      {activeTab === 'history' && (
+        <div>
+          <div style={{ marginBottom: 16 }}>
+            <input style={{ ...inp, width: '100%' }} placeholder="🔍 Search by customer name…" value={historySearch} onChange={e => setHistorySearch(e.target.value)} />
+          </div>
+          <div style={{ ...card, overflow: 'hidden' }}>
+            <div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+              <table style={{ width: '100%', minWidth: 500, borderCollapse: 'collapse' }}>
+                <thead><tr>{['Customer', 'Game', 'Device', 'Games', 'Total', 'Duration', 'Date'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+                <tbody>
+                  {history.filter(s => s.customer_name?.toLowerCase().includes(historySearch.toLowerCase())).map(s => {
+                    const duration = s.end_time && s.start_time ? Math.round((new Date(s.end_time) - new Date(s.start_time)) / 60000) : null;
+                    return (
+                      <tr key={s.id}>
+                        <td style={{ ...td, fontWeight: 600 }}>{s.customer_name}</td>
+                        <td style={td}>{s.games?.game_name || '—'}</td>
+                        <td style={td}>#{s.device_number}</td>
+                        <td style={td}>{s.total_games}</td>
+                        <td style={{ ...td, color: C.green, fontWeight: 700 }}>{fmt$(s.total_amount)}</td>
+                        <td style={{ ...td, color: C.muted }}>{duration ? `${duration} min` : '—'}</td>
+                        <td style={{ ...td, color: C.muted }}>{fmtDate(s.end_time)} {fmtTime(s.end_time)}</td>
+                      </tr>
+                    );
+                  })}
+                  {!history.length && <tr><td colSpan={7} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No completed sessions yet.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
     {finishModal && (
         <Modal title="Complete Payment" onClose={() => setFinishModal(null)}
           footer={<><button style={btnS('outline')} onClick={() => setFinishModal(null)}>Cancel</button><button style={btnS('success')} onClick={finishSession}>✅ Confirm Payment</button></>}>
@@ -1997,17 +2049,17 @@ function StaffSessions() {
       {addGameModal && (
         <Modal title={`Add Games — {addGameModal.customer_name}`} onClose={() => setAddGameModal(null)}
           footer={<><button style={btnS('outline')} onClick={() => setAddGameModal(null)}>Cancel</button><button style={btnS('primary')} onClick={() => addGame(addGameModal)}>Add Games</button></>}>
-          <div style={{ marginBottom: 14, padding: '10px 14px', background: `{C.accent}10`, borderRadius: 8, fontSize: 13 }}>
+          <div style={{ marginBottom: 14, padding: '10px 14px', background: `${C.accent}10`, borderRadius: 8, fontSize: 13 }}>
             <div>Customer: <strong>{addGameModal.customer_name}</strong></div>
             <div>Games played so far: <strong style={{ color: C.accent }}>{addGameModal.total_games}</strong></div>
             <div>Total so far: <strong style={{ color: C.green }}>{addGameModal.total_amount} Birr</strong></div>
           </div>
           <Field label="Select Game" value={addGameForm.game_id} onChange={v => setAddGameForm({ ...addGameForm, game_id: v, device_number: '1' })}
-            options={[{ value: '', label: '— Select game —' }, ...games.map(g => ({ value: g.id, label: `{g.game_name} ({g.price})` }))]} />
+            options={[{ value: '', label: '— Select game —' }, ...games.map(g => ({ value: g.id, label: `${g.game_name} (${g.price})` }))]} />
           <Field label="Select Device" value={addGameForm.device_number} onChange={v => setAddGameForm({ ...addGameForm, device_number: v })} options={addDeviceOptions} />
           <Field label="Number of Games" type="number" value={addGameForm.games_count} onChange={v => setAddGameForm({ ...addGameForm, games_count: v })} placeholder="e.g. 3" />
           {selectedAddGame && (
-            <div style={{ padding: '10px 14px', background: `{C.green}10`, borderRadius: 8, fontSize: 13, color: C.green }}>
+            <div style={{ padding: '10px 14px', background: `${C.green}10`, borderRadius: 8, fontSize: 13, color: C.green }}>
               Adding: <strong>{addGameForm.games_count} games</strong> × <strong>{selectedAddGame.price} Birr</strong> = <strong>{Number(addGameForm.games_count || 0) * Number(selectedAddGame.price)} Birr</strong>
               <br />New total: <strong>{Number(addGameModal.total_amount) + (Number(addGameForm.games_count || 0) * Number(selectedAddGame.price))} Birr</strong>
             </div>
