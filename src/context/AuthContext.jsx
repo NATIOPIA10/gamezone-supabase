@@ -13,10 +13,10 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let mounted = true;
 
-    // Hard timeout — never stuck longer than 4 seconds
+   // Hard timeout — never stuck longer than 6 seconds
     const hardTimeout = setTimeout(() => {
       if (mounted) setLoading(false);
-    }, 2000);
+    }, 6000);
 
     async function loadSession() {
       try {
@@ -43,6 +43,10 @@ export function AuthProvider({ children }) {
         if (event === 'SIGNED_IN' && session) {
           setUser(session.user);
           await fetchProfile(session.user.id, mounted);
+          if (mounted) setLoading(false);
+        }
+
+        if (event === 'INITIAL_SESSION') {
           if (mounted) setLoading(false);
         }
 
