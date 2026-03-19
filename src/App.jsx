@@ -1401,7 +1401,7 @@ function OwnerGames() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                 <span style={{ color: C.muted }}>Price</span>
-                <span style={{ fontWeight: 800, color: C.green, fontSize: 16 }}>${g.price}</span>
+                <span style={{ fontWeight: 800, color: C.green, fontSize: 16 }}>{g.price} Birr</span>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -1483,7 +1483,7 @@ function OwnerSubscription() {
         <div style={{ ...card, padding: 24, border: `2px solid ${C.accent}` }}>
           <div style={{ fontSize: 11, color: C.dim, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Current Plan</div>
           <div style={{ fontSize: 26, fontWeight: 900, color: C.accent, marginBottom: 4 }}>{currentPlan?.name || '—'}</div>
-          <div style={{ fontSize: 32, fontWeight: 800, marginBottom: 14 }}>${currentPlan?.price_monthly || 0}<span style={{ fontSize: 13, color: C.muted }}>/mo</span></div>
+          <div style={{ fontSize: 32, fontWeight: 800, marginBottom: 14 }}>{currentPlan?.price_monthly || 0} Birr<span style={{ fontSize: 13, color: C.muted }}>/mo</span></div>
           {(typeof currentPlan?.features === 'string' ? JSON.parse(currentPlan.features) : currentPlan?.features || []).map(f => (
             <div key={f} style={{ display: 'flex', gap: 7, marginBottom: 8, fontSize: 13, color: C.muted }}><span style={{ color: C.green }}>✓</span>{f}</div>
           ))}
@@ -1511,7 +1511,7 @@ function OwnerSubscription() {
         {(plans || []).map(p => (
           <div key={p.id} style={{ ...card, padding: 20, border: `2px solid ${p.id === currentPlan?.id ? C.accent : C.border}`, opacity: p.id === currentPlan?.id ? 0.7 : 1 }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: planColor[p.name] || C.muted, marginBottom: 4 }}>{p.name}</div>
-            <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 12 }}>${p.price_monthly} BIrr<span style={{ fontSize: 12, color: C.muted }}>/mo</span></div>
+            <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 12 }}>{p.price_monthly} Birr<span style={{ fontSize: 12, color: C.muted }}>/mo</span></div>
             {(typeof p.features === 'string' ? JSON.parse(p.features) : p.features || []).map(f => (
               <div key={f} style={{ display: 'flex', gap: 6, marginBottom: 6, fontSize: 12, color: C.muted }}><span style={{ color: C.green }}>✓</span>{f}</div>
             ))}
@@ -1530,8 +1530,7 @@ function OwnerSubscription() {
           <div style={{ textAlign: 'center', padding: '10px 0 20px' }}>
             <div style={{ fontSize: 13, color: C.muted, marginBottom: 8 }}>Upgrading to</div>
             <div style={{ fontSize: 28, fontWeight: 900, color: planColor[selectedPlan.name] || C.accent }}>{selectedPlan.name}</div>
-            <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>${selectedPlan.price_monthly}<span style={{ fontSize: 12, color: C.muted }}>/mo</span></div>
-            <div style={{ fontSize: 13, color: C.muted }}>Your request will be sent to the admin for approval.</div>
+<div style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>{selectedPlan.price_monthly} Birr<span style={{ fontSize: 12, color: C.muted }}>/mo</span></div>            <div style={{ fontSize: 13, color: C.muted }}>Your request will be sent to the admin for approval.</div>
           </div>
         </Modal>
       )}
@@ -1799,7 +1798,7 @@ function StaffSessions() {
               </div>
               <div style={{ ...card, padding: '10px 12px', background: C.surface }}>
                 <div style={{ fontSize: 10, color: C.dim, marginBottom: 3 }}>TOTAL AMOUNT</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: C.green }}>${s.total_amount}</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: C.green }}>{s.total_amount} Birr</div>
               </div>
             </div>
 
@@ -1830,19 +1829,16 @@ function StaffSessions() {
             </div>
             <div style={{ ...card, padding: '12px', textAlign: 'center', background: C.surface }}>
               <div style={{ fontSize: 10, color: C.dim, marginBottom: 4 }}>PRICE/GAME</div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: C.purple }}>${finishModal.games?.price}</div>
-            </div>
+<div style={{ fontSize: 24, fontWeight: 800, color: C.purple }}>{finishModal.games?.price} Birr</div>            </div>
             <div style={{ ...card, padding: '12px', textAlign: 'center', background: C.surface }}>
               <div style={{ fontSize: 10, color: C.dim, marginBottom: 4 }}>TOTAL</div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: C.green }}>${finishModal.total_amount}</div>
-            </div>
+<div style={{ fontSize: 24, fontWeight: 800, color: C.green }}>{finishModal.total_amount} Birr</div>            </div>
           </div>
           <Field label="Payment Method" value={paymentMethod} onChange={setPaymentMethod}
             options={[{ value: 'cash', label: '💵 Cash' }, { value: 'card', label: '💳 Card' }, { value: 'mobile', label: '📱 Mobile Payment' }]} />
           <div style={{ padding: '12px 16px', background: `${C.green}12`, border: `1px solid ${C.green}30`, borderRadius: 10, textAlign: 'center' }}>
             <div style={{ fontSize: 13, color: C.muted }}>Amount to Collect</div>
-            <div style={{ fontSize: 32, fontWeight: 900, color: C.green }}>${finishModal.total_amount}</div>
-          </div>
+<div style={{ fontSize: 32, fontWeight: 900, color: C.green }}>{finishModal.total_amount} Birr</div>          </div>
         </Modal>
       )}
 
@@ -1852,7 +1848,7 @@ function StaffSessions() {
           <div style={{ marginBottom: 14, padding: '10px 14px', background: `${C.accent}10`, borderRadius: 8, fontSize: 13 }}>
             <div>Customer: <strong>{addGameModal.customer_name}</strong></div>
             <div>Games played so far: <strong style={{ color: C.accent }}>{addGameModal.total_games}</strong></div>
-            <div>Total so far: <strong style={{ color: C.green }}>${addGameModal.total_amount}</strong></div>
+            <div>Total so far: <strong style={{ color: C.green }}>{addGameModal.total_amount} Birr</strong></div>
           </div>
           <Field label="Select Game" value={addGameForm.game_id} onChange={v => setAddGameForm({ ...addGameForm, game_id: v, device_number: '1' })}
             options={[{ value: '', label: '— Select game —' }, ...games.map(g => ({ value: g.id, label: `${g.game_name} ($${g.price})` }))]} />
