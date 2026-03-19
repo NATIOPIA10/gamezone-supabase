@@ -1508,7 +1508,7 @@ function OwnerSubscription() {
       const { data: superadmin } = await supabase.from('profiles').select('id').eq('role', 'superadmin').single();
       await supabase.from('notifications').insert({
         title: 'Subscription Upgrade Request',
-        message: `Zone "{zoneInfo?.name}" has requested an upgrade to {selectedPlan.name} plan. Please review and activate.`,
+        message: `Zone "${zoneInfo?.name}" has requested an upgrade to ${selectedPlan.name} plan. Please review and activate.`,
         type: 'info',
         sent_by: profile?.id,
         target_zone_id: profile?.zone_id,
