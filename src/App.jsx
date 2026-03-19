@@ -114,7 +114,7 @@ function BarChart({ data, color, height = 110 }) {
       {data.map((d, i) => (
         <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
           <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'flex-end' }}>
-            <div style={{ width: '100%', height: `{Math.max((d.value / max) * 100, 2)}%`, background: `linear-gradient(180deg, {color}, {color}88)`, borderRadius: '4px 4px 0 0', minHeight: 4 }} />
+            <div style={{ width: '100%', height: `${Math.max((d.value / max) * 100, 2)}%`, background: `linear-gradient(180deg, ${color}, ${color}88)`, borderRadius: '4px 4px 0 0', minHeight: 4 }} />
           </div>
           <div style={{ fontSize: 9, color: C.dim, marginTop: 4, textAlign: 'center' }}>{d.label}</div>
         </div>
