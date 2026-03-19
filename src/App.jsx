@@ -801,8 +801,9 @@ function SASubscriptions() {
 function SAReports() {
   const { data: analytics, loading } = useZoneAnalytics();
   const { data: revenue } = useRevenueByMonth();
+  const { data: allUsers } = useAllUsers();
+  const [activeTab, setActiveTab] = useState('overview');
 
-   // Combine revenue across all zones by month
   const revenueByMonth = (revenue || []).reduce((acc, r) => {
     const label = new Date(r.month).toLocaleString('default', { month: 'short', year: 'numeric' });
     acc[label] = (acc[label] || 0) + Number(r.revenue);
@@ -814,38 +815,141 @@ function SAReports() {
 
   const totalRevenue = (analytics || []).reduce((s, z) => s + Number(z.total_revenue), 0);
   const totalPlayers = (analytics || []).reduce((s, z) => s + Number(z.total_players), 0);
+  const totalSessions = (analytics || []).reduce((s, z) => s + Number(z.total_sessions), 0);
+  const activeZones = (analytics || []).filter(z => z.status === 'active').length;
+  const totalZones = (analytics || []).length;
+  const activeSessions = (analytics || []).reduce((s, z) => s + Number(z.active_sessions), 0);
+  const topZone = (analytics || []).sort((a, b) => Number(b.total_revenue) - Number(a.total_revenue))[0];
+  const owners = (allUsers || []).filter(u => u.role === 'owner').length;
+  const staff = (allUsers || []).filter(u => u.role === 'staff').length;
+
+  const tabs = ['overview', 'zones', 'users'];
 
   return (
     <div>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 22 }}>Reports & Analytics</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 22 }}>
-        <StatCard label="Total Revenue" value={fmt$(totalRevenue)} color={C.accent} />
-        <StatCard label="Total Players" value={totalPlayers} color={C.green} />
-        <StatCard label="Active Zones" value={(analytics || []).filter(z => z.status === 'active').length} color={C.purple} />
-        <StatCard label="Total Sessions" value={(analytics || []).reduce((s, z) => s + Number(z.total_sessions), 0)} color={C.yellow} />
+      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>📊 Reports & Analytics</div>
+      <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Platform-wide performance overview.</div>
+
+      {/* KPI Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
+        <div style={{ ...card, padding: 18, borderLeft: `3px solid ${C.accent}` }}>
+          <div style={{ fontSize: 10, color: C.dim, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Total Revenue</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: C.accent }}>{fmt$(totalRevenue)}</div>
+          <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>All time</div>
+        </div>
+        <div style={{ ...card, padding: 18, borderLeft: `3px solid ${C.green}` }}>
+          <div style={{ fontSize: 10, color: C.dim, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Total Players</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: C.green }}>{totalPlayers}</div>
+          <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>Registered</div>
+        </div>
+        <div style={{ ...card, padding: 18, borderLeft: `3px solid ${C.purple}` }}>
+          <div style={{ fontSize: 10, color: C.dim, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Active Zones</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: C.purple }}>{activeZones}<span style={{ fontSize: 13, color: C.dim }}>/{totalZones}</span></div>
+          <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{activeSessions} active sessions</div>
+        </div>
+        <div style={{ ...card, padding: 18, borderLeft: `3px solid ${C.yellow}` }}>
+          <div style={{ fontSize: 10, color: C.dim, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Total Sessions</div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: C.yellow }}>{totalSessions}</div>
+          <div style={{ fontSize: 11, color: C.muted, marginTop: 4 }}>{owners} owners · {staff} staff</div>
+        </div>
       </div>
-      <div style={{ ...card, padding: '20px 22px', marginBottom: 22 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Revenue by Month</div>
-        {chartData.length ? <BarChart data={chartData} color={C.accent} height={130} /> : <div style={{ color: C.dim, textAlign: 'center', padding: 20 }}>No payment data yet.</div>}
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: `1px solid ${C.border}` }}>
+        {tabs.map(t => (
+          <button key={t} onClick={() => setActiveTab(t)} style={{ background: 'none', border: 'none', color: activeTab === t ? C.accent : C.muted, fontWeight: activeTab === t ? 700 : 400, fontSize: 13, cursor: 'pointer', padding: '8px 16px', borderBottom: activeTab === t ? `2px solid ${C.accent}` : '2px solid transparent', textTransform: 'capitalize' }}>{t}</button>
+        ))}
       </div>
-      <div style={{ ...card, overflow: 'hidden' }}>
-        <div style={{ padding: '14px 18px', borderBottom: `1px solid ${C.border}` }}><div style={{ fontWeight: 700, fontSize: 15 }}>Zone Performance</div></div>
-<div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>          <thead><tr>{['Zone', 'Revenue', 'Players', 'Sessions', 'Active Sessions', 'Status'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
-          <tbody>
-            {(analytics || []).map(z => (
-              <tr key={z.zone_id}>
-                <td style={td}><span style={{ fontWeight: 600 }}>{z.zone_name}</span></td>
-                <td style={{ ...td, color: C.accent, fontWeight: 700 }}>{fmt$(z.total_revenue)}</td>
-                <td style={td}>{z.total_players}</td>
-                <td style={td}>{z.total_sessions}</td>
-                <td style={td}><span style={{ color: Number(z.active_sessions) > 0 ? C.green : C.dim, fontWeight: 700 }}>{z.active_sessions}</span></td>
-                <td style={td}>{badge(z.status)}</td>
-              </tr>
-            ))}
-            {!analytics?.length && <tr><td colSpan={6} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No analytics data yet.</td></tr>}
-          </tbody>
-        </table></div>
-      </div>
+
+      {/* Overview Tab */}
+      {activeTab === 'overview' && (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 18, marginBottom: 18 }}>
+            <div style={{ ...card, padding: 20 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>📈 Revenue Trend (Last 6 Months)</div>
+              {chartData.length ? <BarChart data={chartData} color={C.accent} height={150} /> : <div style={{ color: C.dim, textAlign: 'center', padding: 30 }}>No data yet.</div>}
+            </div>
+            <div style={{ ...card, padding: 20 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>🏆 Top Performing Zone</div>
+              {topZone ? (
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: C.accent, marginBottom: 8 }}>{topZone.zone_name}</div>
+                  <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>Revenue: <strong style={{ color: C.green }}>{fmt$(topZone.total_revenue)}</strong></div>
+                  <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>Players: <strong>{topZone.total_players}</strong></div>
+                  <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>Sessions: <strong>{topZone.total_sessions}</strong></div>
+                  <div style={{ marginTop: 12 }}>{badge(topZone.status)}</div>
+                </div>
+              ) : <div style={{ color: C.dim }}>No data yet.</div>}
+            </div>
+          </div>
+
+          {/* Revenue by Zone Bar */}
+          <div style={{ ...card, padding: 20 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>💰 Revenue by Zone</div>
+            {(analytics || []).sort((a, b) => Number(b.total_revenue) - Number(a.total_revenue)).map(z => {
+              const pct = totalRevenue ? Math.round((Number(z.total_revenue) / totalRevenue) * 100) : 0;
+              return (
+                <div key={z.zone_id} style={{ marginBottom: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{z.zone_name}</span>
+                    <span style={{ fontSize: 13, color: C.accent, fontWeight: 700 }}>{fmt$(z.total_revenue)} ({pct}%)</span>
+                  </div>
+                  <div style={{ height: 8, background: C.border, borderRadius: 4 }}>
+                    <div style={{ height: 8, width: `${pct}%`, background: `linear-gradient(90deg, ${C.accent}, ${C.purple})`, borderRadius: 4, transition: 'width 0.5s' }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Zones Tab */}
+      {activeTab === 'zones' && (
+        <div style={{ ...card, overflow: 'hidden' }}>
+          <div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>
+              <thead><tr>{['Zone', 'Revenue', 'Players', 'Sessions', 'Active Now', 'Status'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+              <tbody>
+                {(analytics || []).sort((a, b) => Number(b.total_revenue) - Number(a.total_revenue)).map(z => (
+                  <tr key={z.zone_id}>
+                    <td style={{ ...td, fontWeight: 600 }}>{z.zone_name}</td>
+                    <td style={{ ...td, color: C.accent, fontWeight: 700 }}>{fmt$(z.total_revenue)}</td>
+                    <td style={td}>{z.total_players}</td>
+                    <td style={td}>{z.total_sessions}</td>
+                    <td style={td}><span style={{ color: Number(z.active_sessions) > 0 ? C.green : C.dim, fontWeight: 700 }}>{z.active_sessions}</span></td>
+                    <td style={td}>{badge(z.status)}</td>
+                  </tr>
+                ))}
+                {!analytics?.length && <tr><td colSpan={6} style={{ ...td, textAlign: 'center', color: C.dim, padding: 30 }}>No data yet.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Users Tab */}
+      {activeTab === 'users' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+          {[
+            { role: 'owner', label: 'Owners', color: C.accent, icon: '👑' },
+            { role: 'staff', label: 'Staff', color: C.green, icon: '👥' },
+            { role: 'superadmin', label: 'Admins', color: C.purple, icon: '🛡️' },
+          ].map(({ role, label, color, icon }) => {
+            const users = (allUsers || []).filter(u => u.role === role);
+            return (
+              <div key={role} style={{ ...card, padding: 20 }}>
+                <div style={{ fontSize: 24, marginBottom: 8 }}>{icon}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>{label}</div>
+                <div style={{ fontSize: 32, fontWeight: 900, color, marginBottom: 12 }}>{users.length}</div>
+                <div style={{ fontSize: 12, color: C.muted }}>Active: {users.filter(u => u.status === 'active').length}</div>
+                <div style={{ fontSize: 12, color: C.muted }}>Pending: {users.filter(u => u.status === 'pending').length}</div>
+                <div style={{ fontSize: 12, color: C.muted }}>Suspended: {users.filter(u => u.status === 'suspended').length}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
