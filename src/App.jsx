@@ -22,7 +22,7 @@ const C = {
 
 // ─── SHARED UI ────────────────────────────────────────────────
 const inp = {
-  width: '100%', background: C.surface, border: `1px solid {C.border}`,
+  width: '100%', background: C.surface, border: `1px solid ${C.border}`,
   borderRadius: 10, padding: '11px 14px', color: C.text, fontSize: 14,
   outline: 'none', boxSizing: 'border-box',
 };
@@ -35,13 +35,13 @@ const btnS = (v = 'primary', sm) => ({
       v === 'success' ? { background: `${C.green}22`, color: C.green, border: `1px solid ${C.green}44` } :
                         { background: 'transparent', color: C.muted, border: `1px solid ${C.border}` }),
 });
-const card = { background: C.card, border: `1px solid {C.border}`, borderRadius: 14 };
-const th = { padding: '10px 12px', textAlign: 'left', fontSize: 10, color: C.dim, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, borderBottom: `1px solid {C.border}`, background: C.surface, whiteSpace: 'nowrap' };
+const card = { background: C.card, border: `1px solid ${C.border}`, borderRadius: 14 };
+const th = { padding: '10px 12px', textAlign: 'left', fontSize: 10, color: C.dim, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, borderBottom: `1px solid ${C.border}`, background: C.surface, whiteSpace: 'nowrap' };
 const td = { padding: '10px 12px', borderBottom: `1px solid {C.border}22`, fontSize: 12, color: C.text, verticalAlign: 'middle', whiteSpace: 'nowrap' };
 
 const badge = (status) => {
-  const m = { active: [C.green, `{C.green}18`], inactive: [C.dim, `{C.dim}18`], suspended: [C.red, `{C.red}18`], pending: [C.yellow, `{C.yellow}18`], ended: [C.dim, `{C.dim}18`] };
-  const [col, bg] = m[status] || [C.muted, `{C.muted}18`];
+  const m = { active: [C.green, `${C.green}18`], inactive: [C.dim, `${C.dim}18`], suspended: [C.red, `${C.red}18`], pending: [C.yellow, `${C.yellow}18`], ended: [C.dim, `${C.dim}18`] };
+  const [col, bg] = m[status] || [C.muted, `${C.muted}18`];
   return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 700, color: col, background: bg }}>● {status}</span>;
 };
 
@@ -62,11 +62,11 @@ function Spinner() {
 }
 
 function ErrorMsg({ msg }) {
-  return <div style={{ background: `{C.red}15`, border: `1px solid {C.red}44`, borderRadius: 10, padding: '12px 14px', color: C.red, fontSize: 13, marginBottom: 16 }}>⚠ {msg}</div>;
+  return <div style={{ background: `${C.red}15`, border: `1px solid {C.red}44`, borderRadius: 10, padding: '12px 14px', color: C.red, fontSize: 13, marginBottom: 16 }}>⚠ {msg}</div>;
 }
 
 function SuccessMsg({ msg }) {
-  return msg ? <div style={{ background: `{C.green}15`, border: `1px solid {C.green}44`, borderRadius: 10, padding: '12px 14px', color: C.green, fontSize: 13, marginBottom: 16 }}>✅ {msg}</div> : null;
+  return msg ? <div style={{ background: `${C.green}15`, border: `1px solid {C.green}44`, borderRadius: 10, padding: '12px 14px', color: C.green, fontSize: 13, marginBottom: 16 }}>✅ {msg}</div> : null;
 }
 
 function Field({ label, type = 'text', value, onChange, options, placeholder, required }) {
@@ -91,12 +91,12 @@ function Modal({ title, onClose, children, footer }) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, backdropFilter: 'blur(4px)' }}
       onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{ ...card, width: '100%', maxWidth: 500, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 30px 80px rgba(0,0,0,0.6)' }}>
-        <div style={{ padding: '18px 22px 14px', borderBottom: `1px solid {C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '18px 22px 14px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: 16, fontWeight: 700 }}>{title}</div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: C.muted, fontSize: 20, cursor: 'pointer' }}>✕</button>
         </div>
         <div style={{ padding: '18px 22px' }}>{children}</div>
-        {footer && <div style={{ padding: '14px 22px', borderTop: `1px solid {C.border}`, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>{footer}</div>}
+        {footer && <div style={{ padding: '14px 22px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>{footer}</div>}
       </div>
     </div>
   );
@@ -327,8 +327,8 @@ function Layout({ page, setPage, children }) {
       )}
 
       {/* Sidebar */}
-      <div style={{ width: 230, background: C.surface, borderRight: `1px solid {C.border}`, display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 200, overflowY: 'auto', transform: (isMobile && isOwnerOrStaff) || (isMobile && !sidebarOpen) ? 'translateX(-100%)' : 'translateX(0)', transition: 'transform 0.3s ease' }}>
-        <div style={{ padding: '18px 16px', borderBottom: `1px solid {C.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ width: 230, background: C.surface, borderRight: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 200, overflowY: 'auto', transform: (isMobile && isOwnerOrStaff) || (isMobile && !sidebarOpen) ? 'translateX(-100%)' : 'translateX(0)', transition: 'transform 0.3s ease' }}>
+        <div style={{ padding: '18px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 34, height: 34, background: `linear-gradient(135deg, {C.accent}, {C.purple})`, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>🎮</div>
           <div>
             <div style={{ fontWeight: 800, fontSize: 14 }}>GameZone</div>
@@ -341,18 +341,18 @@ function Layout({ page, setPage, children }) {
           {items.map(it => {
             const active = page === it.key;
             return (
-<div key={it.key} onClick={() => { setPage(it.key); if (isMobile) setSidebarOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 8, cursor: 'pointer', marginBottom: 2, background: active ? `{C.accent}18` : 'transparent', color: active ? C.accent : C.muted, fontWeight: active ? 600 : 400, fontSize: 13, border: active ? `1px solid {C.accent}30` : '1px solid transparent', transition: 'all 0.15s' }}>                <span style={{ fontSize: 15, width: 18, textAlign: 'center' }}>{it.icon}</span>
+<div key={it.key} onClick={() => { setPage(it.key); if (isMobile) setSidebarOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 10px', borderRadius: 8, cursor: 'pointer', marginBottom: 2, background: active ? `${C.accent}18` : 'transparent', color: active ? C.accent : C.muted, fontWeight: active ? 600 : 400, fontSize: 13, border: active ? `1px solid {C.accent}30` : '1px solid transparent', transition: 'all 0.15s' }}>                <span style={{ fontSize: 15, width: 18, textAlign: 'center' }}>{it.icon}</span>
                 {it.label}
               </div>
             );
           })}
         </div>
 
-        <div style={{ padding: '12px 14px', borderTop: `1px solid {C.border}`, display: 'flex', alignItems: 'center', gap: 9 }}>
+        <div style={{ padding: '12px 14px', borderTop: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 9 }}>
           <div style={{ width: 30, height: 30, borderRadius: '50%', background: `linear-gradient(135deg, {C.accent}, {C.purple})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12, color: '#000', flexShrink: 0 }}>{initials(profile?.name)}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile?.name}</div>
-            <div style={{ fontSize: 10, padding: '1px 7px', borderRadius: 20, display: 'inline-block', background: profile?.role === 'superadmin' ? `{C.purple}25` : profile?.role === 'owner' ? `{C.accent}20` : `{C.green}20`, color: profile?.role === 'superadmin' ? C.purple : profile?.role === 'owner' ? C.accent : C.green, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8 }}>{profile?.role}</div>
+            <div style={{ fontSize: 10, padding: '1px 7px', borderRadius: 20, display: 'inline-block', background: profile?.role === 'superadmin' ? `${C.purple}25` : profile?.role === 'owner' ? `${C.accent}20` : `${C.green}20`, color: profile?.role === 'superadmin' ? C.purple : profile?.role === 'owner' ? C.accent : C.green, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8 }}>{profile?.role}</div>
           </div>
           <button onClick={logout} style={{ background: 'none', border: 'none', color: C.dim, cursor: 'pointer', fontSize: 15 }} title="Logout">⏏</button>
         </div>
@@ -360,20 +360,20 @@ function Layout({ page, setPage, children }) {
 
    {/* Mobile bottom nav for owner/staff */}
      {isMobile && isOwnerOrStaff && (
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: `rgba(15,17,26,0.97)`, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: `1px solid {C.border}`, display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '6px 0 calc(6px + env(safe-area-inset-bottom))', zIndex: 300 }}>
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: `rgba(15,17,26,0.97)`, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '6px 0 calc(6px + env(safe-area-inset-bottom))', zIndex: 300 }}>
           {items.slice(0, 5).map(it => {
             const active = page === it.key;
             return (
               <div key={it.key} onClick={() => setPage(it.key)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, cursor: 'pointer', padding: '6px 10px', borderRadius: 12, flex: 1, position: 'relative' }}>
                 {active && <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 32, height: 3, background: C.accent, borderRadius: '0 0 4px 4px' }} />}
-                <div style={{ width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? `{C.accent}20` : 'transparent', transition: 'all 0.2s', fontSize: 18 }}>{it.icon}</div>
+                <div style={{ width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: active ? `${C.accent}20` : 'transparent', transition: 'all 0.2s', fontSize: 18 }}>{it.icon}</div>
                 <span style={{ fontSize: 9, color: active ? C.accent : C.dim, fontWeight: active ? 700 : 400, textAlign: 'center', letterSpacing: 0.3 }}>{it.label}</span>
               </div>
             );
           })}
           {items.length > 5 && (
             <div onClick={() => setSidebarOpen(!sidebarOpen)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, cursor: 'pointer', padding: '6px 10px', flex: 1 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: sidebarOpen ? `{C.accent}20` : 'transparent', fontSize: 18 }}>•••</div>
+              <div style={{ width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: sidebarOpen ? `${C.accent}20` : 'transparent', fontSize: 18 }}>•••</div>
               <span style={{ fontSize: 9, color: C.dim, fontWeight: 400 }}>More</span>
             </div>
           )}
@@ -384,19 +384,19 @@ function Layout({ page, setPage, children }) {
       {isMobile && isOwnerOrStaff && sidebarOpen && (
         <>
           <div onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 400 }} />
-          <div style={{ position: 'fixed', bottom: 'calc(70px + env(safe-area-inset-bottom))', left: 12, right: 12, background: C.surface, borderRadius: 20, zIndex: 500, padding: 16, border: `1px solid {C.border}`, boxShadow: '0 -8px 40px rgba(0,0,0,0.5)' }}>
+          <div style={{ position: 'fixed', bottom: 'calc(70px + env(safe-area-inset-bottom))', left: 12, right: 12, background: C.surface, borderRadius: 20, zIndex: 500, padding: 16, border: `1px solid ${C.border}`, boxShadow: '0 -8px 40px rgba(0,0,0,0.5)' }}>
             <div style={{ fontSize: 11, color: C.dim, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10, paddingLeft: 4 }}>More Options</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
               {items.slice(5).map(it => {
                 const active = page === it.key;
                 return (
-                  <div key={it.key} onClick={() => { setPage(it.key); setSidebarOpen(false); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 4px', borderRadius: 12, background: active ? `{C.accent}18` : C.bg, cursor: 'pointer', border: active ? `1px solid {C.accent}40` : `1px solid {C.border}` }}>
+                  <div key={it.key} onClick={() => { setPage(it.key); setSidebarOpen(false); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 4px', borderRadius: 12, background: active ? `${C.accent}18` : C.bg, cursor: 'pointer', border: active ? `1px solid {C.accent}40` : `1px solid ${C.border}` }}>
                     <span style={{ fontSize: 20 }}>{it.icon}</span>
                     <span style={{ fontSize: 9, color: active ? C.accent : C.muted, textAlign: 'center', fontWeight: active ? 700 : 400 }}>{it.label}</span>
                   </div>
                 );
               })}
-              <div onClick={() => { logout(); setSidebarOpen(false); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 4px', borderRadius: 12, background: `{C.red}12`, cursor: 'pointer', border: `1px solid {C.red}30` }}>
+              <div onClick={() => { logout(); setSidebarOpen(false); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 4px', borderRadius: 12, background: `${C.red}12`, cursor: 'pointer', border: `1px solid {C.red}30` }}>
                 <span style={{ fontSize: 20 }}>⏏</span>
                 <span style={{ fontSize: 9, color: C.red, textAlign: 'center', fontWeight: 600 }}>Logout</span>
               </div>
@@ -411,7 +411,7 @@ function Layout({ page, setPage, children }) {
         <div style={{ background: scrolled ? `rgba(15,17,26,0.95)` : C.surface, backdropFilter: scrolled ? 'blur(20px)' : 'none', WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'none', borderBottom: `1px solid {scrolled ? C.border : C.border}`, padding: isMobile ? '10px 14px' : '14px 26px',display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50, transition: 'all 0.3s' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {(!isOwnerOrStaff || !isMobile) && (
-              <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ width: 36, height: 36, borderRadius: 10, background: C.surface, border: `1px solid {C.border}`, color: C.text, fontSize: 16, cursor: 'pointer', display: isMobile ? 'flex' : 'none', alignItems: 'center', justifyContent: 'center' }}>☰</button>
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ width: 36, height: 36, borderRadius: 10, background: C.surface, border: `1px solid ${C.border}`, color: C.text, fontSize: 16, cursor: 'pointer', display: isMobile ? 'flex' : 'none', alignItems: 'center', justifyContent: 'center' }}>☰</button>
             )}
             {isMobile && (
               <div style={{ width: 28, height: 28, background: `linear-gradient(135deg, {C.accent}, {C.purple})`, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🎮</div>
@@ -419,9 +419,9 @@ function Layout({ page, setPage, children }) {
             <div style={{ fontSize: isMobile ? 16 : 19, fontWeight: 700 }}>{currentLabel}</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div onClick={() => setPage('notifications')} style={{ width: 36, height: 36, borderRadius: 10, background: C.surface, border: `1px solid {C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16 }}>🔔</div>
+            <div onClick={() => setPage('notifications')} style={{ width: 36, height: 36, borderRadius: 10, background: C.surface, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16 }}>🔔</div>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg, {C.accent}, {C.purple})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: '#000', cursor: 'pointer' }}>{initials(profile?.name)}</div>
-            {isMobile && isOwnerOrStaff && <div onClick={logout} style={{ width: 36, height: 36, borderRadius: 10, background: `{C.red}18`, border: `1px solid {C.red}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16 }}>⏏</div>}
+            {isMobile && isOwnerOrStaff && <div onClick={logout} style={{ width: 36, height: 36, borderRadius: 10, background: `${C.red}18`, border: `1px solid {C.red}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 16 }}>⏏</div>}
           </div>
         </div>
         <div style={{ padding: isMobile ? '16px 14px' : '26px' }}>{children}</div>
@@ -503,7 +503,7 @@ function SAZones() {
       <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>Manage all gaming center locations — live from Supabase.</div>
       {loading ? <Spinner /> : (
         <div style={{ ...card, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 18px', borderBottom: `1px solid {C.border}`, display: 'flex', gap: 10, justifyContent: 'space-between' }}>
+          <div style={{ padding: '14px 18px', borderBottom: `1px solid ${C.border}`, display: 'flex', gap: 10, justifyContent: 'space-between' }}>
             <input style={{ ...inp, width: 220 }} placeholder="🔍 Search zones…" value={search} onChange={e => setSearch(e.target.value)} />
             <button style={btnS('primary')} onClick={openNew}>+ New Zone</button>
           </div>
@@ -634,7 +634,7 @@ function SAPlayers() {
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Players</div>
       <div style={{ color: C.muted, fontSize: 13, marginBottom: 22 }}>All registered players across all zones.</div>
       <div style={{ ...card, overflow: 'hidden' }}>
-        <div style={{ padding: '14px 18px', borderBottom: `1px solid {C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '14px 18px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <input style={{ ...inp, width: 220 }} placeholder="🔍 Search players…" value={search} onChange={e => setSearch(e.target.value)} />
           <span style={{ color: C.muted, fontSize: 13 }}>{filtered.length} players</span>
         </div>
@@ -1059,7 +1059,7 @@ function NotificationsPage({ zoneId = null }) {
               options={[{ value: '', label: '— Select zone —' }, ...(zones || []).map(z => ({ value: z.id, label: z.name }))]} />
           )}
           {profile?.role === 'owner' && (
-            <div style={{ padding: '10px 14px', background: `{C.accent}10`, borderRadius: 8, fontSize: 13, color: C.muted }}>
+            <div style={{ padding: '10px 14px', background: `${C.accent}10`, borderRadius: 8, fontSize: 13, color: C.muted }}>
               📨 This message will be sent to the <strong style={{ color: C.accent }}>Super Admin</strong>.
             </div>
           )}
@@ -1125,7 +1125,7 @@ const [modal, setModal] = useState(false);
               <tr key={a.id}>
                 <td style={td}><span style={{ fontWeight: 600 }}>{a.name}</span></td>
                 <td style={{ ...td, color: C.muted }}>{a.email}</td>
-                <td style={td}><span style={{ padding: '3px 9px', borderRadius: 20, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', background: `{C.purple}25`, color: C.purple }}>{a.role}</span></td>
+                <td style={td}><span style={{ padding: '3px 9px', borderRadius: 20, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', background: `${C.purple}25`, color: C.purple }}>{a.role}</span></td>
                 <td style={td}>{badge(a.status)}</td>
                 <td style={{ ...td, color: C.muted }}>{fmtDate(a.created_at)}</td>
                 <td style={td}><button style={btnS(a.status === 'active' ? 'danger' : 'success', true)} onClick={() => toggleStatus(a)}>{a.status === 'active' ? 'Suspend' : 'Activate'}</button></td>
@@ -1373,7 +1373,7 @@ function OwnerEarnings() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 18, borderBottom: `1px solid {C.border}`, paddingBottom: 0 }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 18, borderBottom: `1px solid ${C.border}`, paddingBottom: 0 }}>
         {tabs.map(t => (
           <button key={t} onClick={() => setActiveTab(t)} style={{ background: 'none', border: 'none', color: activeTab === t ? C.accent : C.muted, fontWeight: activeTab === t ? 700 : 400, fontSize: 13, cursor: 'pointer', padding: '8px 16px', borderBottom: activeTab === t ? `2px solid {C.accent}` : '2px solid transparent', textTransform: 'capitalize', transition: 'all 0.15s' }}>{t}</button>
         ))}
@@ -1450,7 +1450,7 @@ function OwnerEarnings() {
       {/* Games Tab */}
       {activeTab === 'games' && (
         <div style={{ ...card, overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: `1px solid {C.border}`, fontWeight: 700 }}>🕹️ Games Performance</div>
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${C.border}`, fontWeight: 700 }}>🕹️ Games Performance</div>
           <div className="table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <table style={{ width: '100%', minWidth: 500, borderCollapse: 'collapse' }}>
               <thead><tr>{['Game', 'Type', 'Price', 'Devices', 'Revenue'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
@@ -1458,7 +1458,7 @@ function OwnerEarnings() {
                 {(games || []).map(g => (
                   <tr key={g.id}>
                     <td style={{ ...td, fontWeight: 600 }}>{g.game_name}</td>
-                    <td style={td}><span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: g.game_type === 'Jotoni' ? `{C.purple}20` : `{C.accent}20`, color: g.game_type === 'Jotoni' ? C.purple : C.accent }}>{g.game_type}</span></td>
+                    <td style={td}><span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: g.game_type === 'Jotoni' ? `${C.purple}20` : `${C.accent}20`, color: g.game_type === 'Jotoni' ? C.purple : C.accent }}>{g.game_type}</span></td>
                     <td style={{ ...td, color: C.green }}>{fmt(g.price)}</td>
                     <td style={td}>{g.devices}</td>
                     <td style={{ ...td, color: C.green, fontWeight: 700 }}>{fmt(byGame[g.game_name] || 0)}</td>
@@ -1544,7 +1544,7 @@ function OwnerGames() {
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: gameTypeColor[g.game_type] || C.accent }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
               <div style={{ fontSize: 16, fontWeight: 800 }}>{g.game_name}</div>
-              <span style={{ padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 700, color: gameTypeColor[g.game_type] || C.accent, background: `{gameTypeColor[g.game_type] || C.accent}20` }}>{g.game_type}</span>
+              <span style={{ padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 700, color: gameTypeColor[g.game_type] || C.accent, background: `${gameTypeColor[g.game_type] || C.accent}20` }}>{g.game_type}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
@@ -1896,10 +1896,10 @@ function StaffSessions() {
             <label style={{ display: 'block', fontSize: 11, color: C.muted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 5 }}>Customer Name *</label>
             <input value={playerSearch} onChange={e => searchPlayers(e.target.value)} placeholder="Search registered player…" style={inp} autoComplete="off" />
             {showSuggestions && playerSuggestions.length > 0 && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: C.card, border: `1px solid {C.border}`, borderRadius: 8, zIndex: 100, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', marginTop: 4 }}>
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, zIndex: 100, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', marginTop: 4 }}>
                 {playerSuggestions.map(p => (
-                  <div key={p.id} onClick={() => selectPlayer(p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: `1px solid {C.border}20`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                    onMouseEnter={e => e.currentTarget.style.background = `{C.accent}15`}
+                  <div key={p.id} onClick={() => selectPlayer(p)} style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: `1px solid ${C.border}20`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                    onMouseEnter={e => e.currentTarget.style.background = `${C.accent}15`}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <span style={{ fontWeight: 600 }}>{p.name}</span>
                     {p.phone && <span style={{ fontSize: 11, color: C.muted }}>{p.phone}</span>}
@@ -1908,19 +1908,19 @@ function StaffSessions() {
               </div>
             )}
             {showSuggestions && playerSuggestions.length === 0 && playerSearch.length >= 2 && (
-              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: C.card, border: `1px solid {C.border}`, borderRadius: 8, zIndex: 100, padding: '10px 14px', color: C.dim, fontSize: 13, marginTop: 4 }}>
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, zIndex: 100, padding: '10px 14px', color: C.dim, fontSize: 13, marginTop: 4 }}>
                 No players found. <span style={{ color: C.accent, cursor: 'pointer' }} onClick={() => { setForm({ ...form, customer_name: playerSearch }); setShowSuggestions(false); }}>Use "{playerSearch}" anyway</span>
               </div>
             )}
           </div>
           <Field label="Select Game" value={form.game_id} onChange={v => setForm({ ...form, game_id: v, device_number: '1' })}
-            options={[{ value: '', label: '— Select game —' }, ...games.map(g => ({ value: g.id, label: `{g.game_name} ({g.price})` }))]} />
+            options={[{ value: '', label: '— Select game —' }, ...games.map(g => ({ value: g.id, label: `${g.game_name} (${g.price} Birr)` }))]} />
           <Field label="Device Number" value={form.device_number} onChange={v => setForm({ ...form, device_number: v })} options={deviceOptions} />
           <Field label="Session Mode" value={form.session_mode} onChange={v => setForm({ ...form, session_mode: v })}
             options={[{ value: 'Per Game', label: 'Per Game' }, { value: 'Time Based', label: 'Time Based' }]} />
         </div>
         {selectedGame && (
-          <div style={{ marginTop: 8, padding: '10px 14px', background: `{C.accent}10`, borderRadius: 8, fontSize: 13, color: C.accent }}>
+          <div style={{ marginTop: 8, padding: '10px 14px', background: `${C.accent}10`, borderRadius: 8, fontSize: 13, color: C.accent }}>
             💡 <strong>{selectedGame.game_name}</strong> — {selectedGame.game_type} — Price: <strong>{selectedGame.price} Birr</strong> per game
           </div>
         )}
@@ -1957,7 +1957,7 @@ function StaffSessions() {
                 <div style={{ fontSize: 16, fontWeight: 800 }}>{s.customer_name}</div>
                 <div style={{ fontSize: 12, color: C.muted }}>{s.games?.game_name} · Device {s.device_number}</div>
               </div>
-              <span style={{ padding: '3px 9px', borderRadius: 20, fontSize: 10, fontWeight: 700, color: C.green, background: `{C.green}20` }}>● ACTIVE</span>
+              <span style={{ padding: '3px 9px', borderRadius: 20, fontSize: 10, fontWeight: 700, color: C.green, background: `${C.green}20` }}>● ACTIVE</span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
@@ -2040,7 +2040,7 @@ function StaffSessions() {
           </div>
           <Field label="Payment Method" value={paymentMethod} onChange={setPaymentMethod}
             options={[{ value: 'cash', label: '💵 Cash' }, { value: 'card', label: '💳 Card' }, { value: 'mobile', label: '📱 Mobile Payment' }]} />
-          <div style={{ padding: '12px 16px', background: `{C.green}12`, border: `1px solid {C.green}30`, borderRadius: 10, textAlign: 'center' }}>
+          <div style={{ padding: '12px 16px', background: `${C.green}12`, border: `1px solid {C.green}30`, borderRadius: 10, textAlign: 'center' }}>
             <div style={{ fontSize: 13, color: C.muted }}>Amount to Collect</div>
 <div style={{ fontSize: 32, fontWeight: 900, color: C.green }}>{finishModal.total_amount} Birr</div>          </div>
         </Modal>
