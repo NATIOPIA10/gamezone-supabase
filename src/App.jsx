@@ -660,9 +660,37 @@ function SAPlayers() {
 }
 
 function SASubscriptions() {
-  const { data: plans, loading } = useSubscriptionPlans();
+  const { data: plans, loading, refetch: refetchPlans } = useSubscriptionPlans();
   const [requests, setRequests] = useState([]);
   const [approving, setApproving] = useState(null);
+  const [planModal, setPlanModal] = useState(null); // null = closed, 'new' = new, id = edit
+  const [planForm, setPlanForm] = useState({ name: '', price_monthly: '', max_stations: '', features: '' });
+  const [saving, setSaving] = useState(false);
+
+  const openNew = () => { setPlanForm({ name: '', price_monthly: '', max_stations: '', features: '' }); setPlanModal('new'); };
+  const openEdit = (p) => { setPlanForm({ name: p.name, price_monthly: p.price_monthly, max_stations: p.max_stations, features: Array.isArray(p.features) ? p.features.join('\n') : p.features }); setPlanModal(p.id); };
+
+  const savePlan = async () => {
+    setSaving(true);
+    try {
+      const featuresArr = planForm.features.split('\n').map(f => f.trim()).filter(Boolean);
+      const payload = { name: planForm.name, price_monthly: Number(planForm.price_monthly), max_stations: Number(planForm.max_stations), features: featuresArr };
+      if (planModal === 'new') {
+        await supabase.from('subscription_plans').insert(payload);
+      } else {
+        await supabase.from('subscription_plans').update(payload).eq('id', planModal);
+      }
+      await refetchPlans();
+      setPlanModal(null);
+    } catch(e) { alert('Error: ' + e.message); }
+    finally { setSaving(false); }
+  };
+
+  const deletePlan = async (id) => {
+    if (!confirm('Delete this plan?')) return;
+    await supabase.from('subscription_plans').delete().eq('id', id);
+    refetchPlans();
+  };
 
   const loadRequests = async () => {
     const { data } = await supabase.from('subscriptions')
@@ -736,20 +764,36 @@ function SASubscriptions() {
       )}
 
       {/* Plans */}
-      <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Subscription Plans</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div style={{ fontSize: 16, fontWeight: 700 }}>Subscription Plans</div>
+        <button style={btnS('primary')} onClick={openNew}>+ Add Plan</button>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
         {(plans || []).map(p => (
-          <div key={p.id} style={{ ...card, padding: 22, border: p.name === 'Pro' ? `2px solid {C.accent}` : `1px solid {C.border}` }}>
-            {p.name === 'Pro' && <div style={{ background: C.accent, textAlign: 'center', padding: 5, fontSize: 10, fontWeight: 700, color: '#000', letterSpacing: 1, margin: '-22px -22px 18px', borderRadius: '12px 12px 0 0' }}>MOST POPULAR</div>}
+          <div key={p.id} style={{ ...card, padding: 22, border: `1px solid ${C.border}` }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: p.name === 'Pro' ? C.accent : p.name === 'Premium' ? C.purple : C.muted, marginBottom: 4 }}>{p.name}</div>
-            <div style={{ fontSize: 32, fontWeight: 900, marginBottom: 4 }}>{p.price_monthly}  Birr<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/mo</span></div>
-            <div style={{ fontSize: 12, color: C.muted, marginBottom: 16 }}>{p.max_stations === 999 ? 'Unlimited' : p.max_stations} stations</div>
+            <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 4 }}>{p.price_monthly} Birr<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/mo</span></div>
+            <div style={{ fontSize: 12, color: C.muted, marginBottom: 12 }}>{p.max_stations === 999 ? 'Unlimited' : p.max_stations} stations</div>
             {(typeof p.features === 'string' ? JSON.parse(p.features) : p.features || []).map(f => (
-              <div key={f} style={{ display: 'flex', gap: 7, marginBottom: 8, fontSize: 12, color: C.muted }}><span style={{ color: C.green }}>✓</span>{f}</div>
+              <div key={f} style={{ display: 'flex', gap: 7, marginBottom: 6, fontSize: 12, color: C.muted }}><span style={{ color: C.green }}>✓</span>{f}</div>
             ))}
+            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+              <button style={{ ...btnS('outline', true), flex: 1 }} onClick={() => openEdit(p)}>✏️ Edit</button>
+              <button style={{ ...btnS('danger', true), flex: 1 }} onClick={() => deletePlan(p.id)}>🗑 Delete</button>
+            </div>
           </div>
         ))}
       </div>
+
+      {planModal && (
+        <Modal title={planModal === 'new' ? 'Add New Plan' : 'Edit Plan'} onClose={() => setPlanModal(null)}
+          footer={<><button style={btnS('outline')} onClick={() => setPlanModal(null)}>Cancel</button><button style={btnS('primary')} onClick={savePlan} disabled={saving}>{saving ? 'Saving…' : 'Save Plan'}</button></>}>
+          <Field label="Plan Name" value={planForm.name} onChange={v => setPlanForm({ ...planForm, name: v })} placeholder="e.g. Basic, Pro, Premium" required />
+          <Field label="Price (Birr/month)" type="number" value={planForm.price_monthly} onChange={v => setPlanForm({ ...planForm, price_monthly: v })} placeholder="e.g. 299" required />
+          <Field label="Max Stations (999 = Unlimited)" type="number" value={planForm.max_stations} onChange={v => setPlanForm({ ...planForm, max_stations: v })} placeholder="e.g. 10" required />
+          <Field label="Features (one per line)" type="textarea" value={planForm.features} onChange={v => setPlanForm({ ...planForm, features: v })} placeholder={"Up to 10 stations\nBasic analytics\nEmail support"} />
+        </Modal>
+      )}
     </div>
   );
 }
