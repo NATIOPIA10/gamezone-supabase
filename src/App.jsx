@@ -31,9 +31,9 @@ const btnS = (v = 'primary', sm) => ({
   borderRadius: 8, border: 'none', cursor: 'pointer',
   fontWeight: 600, fontSize: sm ? 12 : 13, transition: 'opacity 0.15s',
   ...(v === 'primary' ? { background: C.accent, color: '#000' } :
-      v === 'danger'  ? { background: `{C.red}22`, color: C.red, border: `1px solid {C.red}44` } :
-      v === 'success' ? { background: `{C.green}22`, color: C.green, border: `1px solid {C.green}44` } :
-                        { background: 'transparent', color: C.muted, border: `1px solid {C.border}` }),
+      v === 'danger'  ? { background: `${C.red}22`, color: C.red, border: `1px solid ${C.red}44` } :
+      v === 'success' ? { background: `${C.green}22`, color: C.green, border: `1px solid ${C.green}44` } :
+                        { background: 'transparent', color: C.muted, border: `1px solid ${C.border}` }),
 });
 const card = { background: C.card, border: `1px solid {C.border}`, borderRadius: 14 };
 const th = { padding: '10px 12px', textAlign: 'left', fontSize: 10, color: C.dim, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.8, borderBottom: `1px solid {C.border}`, background: C.surface, whiteSpace: 'nowrap' };
