@@ -1767,7 +1767,7 @@ function StaffSessions() {
   const { profile } = useAuth();
   const [games, setGames] = useState([]);
   const [sessions, setSessions] = useState([]);
-  const [form, setForm] = useState({ customer_name: '', game_id: '', device_number: '1', session_mode: 'Per Game' });
+  const [form, setForm] = useState({ customer_name: '', game_id: '', device_number: '1', session_mode: 'Per Game', duration_minutes: '' });
   const [err, setErr] = useState('');
   const [saving, setSaving] = useState(false);
   const [timers, setTimers] = useState({});
@@ -1802,6 +1802,9 @@ function StaffSessions() {
 
   const startSession = async () => {
     if (!form.customer_name || !form.game_id) { setErr('Customer name and game are required.'); return; }
+    const selectedGame = games.find(g => g.id === form.game_id);
+    const isPlayStation = selectedGame?.game_type === 'PlayStation';
+    if (isPlayStation && !form.duration_minutes) { setErr('Please enter session duration in minutes.'); return; }
     setSaving(true); setErr('');
     try {
       await supabase.from('sessions').insert({
@@ -1809,13 +1812,15 @@ function StaffSessions() {
         game_id: form.game_id,
         customer_name: form.customer_name,
         device_number: Number(form.device_number),
-        session_mode: form.session_mode,
+        session_mode: isPlayStation ? 'Time Based' : 'Per Game',
+        duration_minutes: isPlayStation ? Number(form.duration_minutes) : null,
+        last_cycle_start: isPlayStation ? new Date().toISOString() : null,
         total_games: 0,
         total_amount: 0,
         status: 'active',
         start_time: new Date().toISOString(),
       });
-      setForm({ customer_name: '', game_id: '', device_number: '1', session_mode: 'Per Game' });
+      setForm({ customer_name: '', game_id: '', device_number: '1', session_mode: 'Per Game', duration_minutes: '' });
       await loadSessions();
     } catch (e) { setErr(e.message); }
     finally { setSaving(false); }
@@ -1870,8 +1875,38 @@ function StaffSessions() {
     const h = Math.floor(diff / 3600);
     const m = Math.floor((diff % 3600) / 60);
     const s = diff % 60;
-    return h > 0 ? `{h}h {m}m {s}s` : `{m}m {s}s`;
+    return h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
   };
+
+  const getCountdown = (session) => {
+    if (!session.last_cycle_start || !session.duration_minutes) return null;
+    const cycleMs = session.duration_minutes * 60 * 1000;
+    const elapsed = Date.now() - new Date(session.last_cycle_start).getTime();
+    const remaining = Math.max(0, cycleMs - elapsed);
+    const m = Math.floor(remaining / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+    return { m, s, remaining, cycleMs };
+  };
+
+  // Auto-complete PlayStation cycles
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      for (const s of sessions) {
+        if (s.games?.game_type !== 'PlayStation' || !s.last_cycle_start || !s.duration_minutes) continue;
+        const countdown = getCountdown(s);
+        if (countdown && countdown.remaining === 0) {
+          const newAmount = Number(s.total_amount) + Number(s.games?.session_price || 0);
+          await supabase.from('sessions').update({
+            total_amount: newAmount,
+            total_games: s.total_games + 1,
+            last_cycle_start: new Date().toISOString(),
+          }).eq('id', s.id);
+          await loadSessions();
+        }
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [sessions]);
 
   const [playerSearch, setPlayerSearch] = useState('');
   const [playerSuggestions, setPlayerSuggestions] = useState([]);
@@ -1927,8 +1962,9 @@ function StaffSessions() {
           <Field label="Select Game" value={form.game_id} onChange={v => setForm({ ...form, game_id: v, device_number: '1' })}
             options={[{ value: '', label: '— Select game —' }, ...games.map(g => ({ value: g.id, label: g.game_name + ' (' + g.price + ' Birr)' }))]} />
           <Field label="Device Number" value={form.device_number} onChange={v => setForm({ ...form, device_number: v })} options={deviceOptions} />
-          <Field label="Session Mode" value={form.session_mode} onChange={v => setForm({ ...form, session_mode: v })}
-            options={[{ value: 'Per Game', label: 'Per Game' }, { value: 'Time Based', label: 'Time Based' }]} />
+          {games.find(g => g.id === form.game_id)?.game_type === 'PlayStation' && (
+            <Field label="Duration (minutes)" type="number" value={form.duration_minutes} onChange={v => setForm({ ...form, duration_minutes: v })} placeholder="e.g. 30" required />
+          )}
         </div>
         {selectedGame && (
           <div style={{ marginTop: 8, padding: '10px 14px', background: `${C.accent}10`, borderRadius: 8, fontSize: 13, color: C.accent }}>
@@ -1984,7 +2020,14 @@ function StaffSessions() {
 
               <div style={{ fontSize: 11, color: C.muted, marginBottom: 14, display: 'flex', justifyContent: 'space-between' }}>
                 <span>⏱ {getElapsed(s.start_time)}</span>
-                <span>Price: {s.games?.price}/game</span>
+                {s.games?.game_type === 'PlayStation' ? (() => {
+                  const cd = getCountdown(s);
+                  return cd ? (
+                    <span style={{ color: cd.remaining < 30000 ? C.red : C.purple, fontWeight: 700 }}>
+                      ⏳ {cd.m}:{String(cd.s).padStart(2, '0')} left
+                    </span>
+                  ) : null;
+                })() : <span>Price: {s.games?.price} Birr/game</span>}
               </div>
 
               <div style={{ display: 'flex', gap: 8 }}>
